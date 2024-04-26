@@ -61,13 +61,14 @@ def parse_petstore_order_details(jsonData):
         data["service_instance_id"] = jsonData["data"]["orderItems"][0]["services"][0]["serviceInventoryId"]
         
         #Get the database password
-        configs = jsonData["data"]["orderItems"][0]["configInfo"]
+        configs = jsonData["data"]["orderItems"][1]["configInfo"]
+        
         for c in configs:
             if "parameters" in str(c["configGroup"]):
                 inputs = c["config"]
-
+        
         for param in inputs:
-            if param["configId"] == "administratorPassword":
+            if param["configId"] == "serverPassword":
                 data["db_password"] = param["values"][0]["value"]
 
         return data
@@ -144,13 +145,17 @@ def parse_service_instance_details( jsonData ):
                     db_user = output["value"]
 
     db_user = db_user + "@" + db_url
-
-    return {
+    
+    response = {
         "tmp_kube_config": kubeconfig,
         "fqdn": fqdn,
         "db_url": db_url,
         "db_user": db_user,
     }
+    
+    LOGGER.info(f"Order details parsed: {response} ")
+
+    return response
 
 def read_petstore_order( tenantApiUrl, tenantUserId, tenantUserApikey, orderNumber, createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config" ):
     tenantApiUrl = common_utils.sanitazeTenantUrl(tenantApiUrl, urlType="api")

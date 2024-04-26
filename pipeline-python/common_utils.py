@@ -62,7 +62,6 @@ def make_web_request(url="", payload={}, headers={}, requestMethod=requests.get,
                 method:  {requestMethod.__name__}
                 response:{response.text}
                 response status code: {response.status_code}
-                timestamp: {datetime.now()}
                 """
             )
             return response, True, ""

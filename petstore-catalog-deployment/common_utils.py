@@ -11,6 +11,15 @@ def make_web_request(url="", payload={}, headers={}, requestMethod=requests.get,
         # TODO - in case of a gateway time out error 504 (statuscode) retry
         response = requestMethod(url=url, json=payload, headers=headers, params=params)
         if response.status_code >= 200 and response.status_code < 300:
+            LOGGER.info(
+                f"""Success 200 response from {url}
+                headers: {headers}
+                payload: {payload}
+                method:  {requestMethod.__name__}
+                response:{response.text}
+                response status code: {response.status_code}
+                """
+            )
             return response, True, ""
 
         LOGGER.warn(

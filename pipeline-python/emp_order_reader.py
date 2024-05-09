@@ -248,6 +248,7 @@ def get_petstore_service_chaining_details(tenant_system_user_id, tenant_system_u
 
 def parse_service_chaining_details(jsonData, jsonData2):
     kubeconfig = ""
+    fqdn = ""
     db_url = ""
     templist = []
     #LOGGER.info(f"Number of resources in order: {len(jsonData['resources'])}" )
@@ -257,6 +258,12 @@ def parse_service_chaining_details(jsonData, jsonData2):
             for output in resouce["templateOutputProperties"]:
                 if output["name"] == "Kube Config Raw":
                     kubeconfig = output["value"]
+
+    for resouce in jsonData["resources"]:
+        if resouce["resourceType"] == "azurerm_kubernetes_cluster":
+            for output in resouce["templateOutputProperties"]:
+                if output["name"] == "Http Application Routing Zone Name":
+                    templist.append(output["value"])
 
 
     for resouce in jsonData2["resources"]:
@@ -268,7 +275,8 @@ def parse_service_chaining_details(jsonData, jsonData2):
 
     return {
         "tmp_kube_config": kubeconfig,
-        "db_url": templist[0],
+        "fqdn": templist[0],
+        "db_url": templist[1],
     }
 
 def package_all_details(tenant_system_user_id, tenant_system_user_api_key, order_number, service_instance_id, service_instance_id2, tenant_api_url):
@@ -320,7 +328,7 @@ def read_petstore_order( tenantApiUrl, tenantUserId, tenantUserApikey, orderNumb
 
     return {
             "tmp_kube_config": serviceDetails['tmp_kube_config'],
-            "fqdn": serviceDetails['db_url'],
+            "fqdn": serviceDetails['fqdn'],
             "db_url": serviceDetails['db_url'],
             "db_user": orderDetails['db_user'],
             "db_password": orderDetails['db_pass']

@@ -322,7 +322,7 @@ def read_petstore_order( tenantApiUrl, tenantUserId, tenantUserApikey, orderNumb
             "tmp_kube_config": serviceDetails['tmp_kube_config'],
             "fqdn": serviceDetails['db_url'],
             "db_url": serviceDetails['db_url'],
-            "db_user": serviceDetails['db_user'],
+            "db_user": orderDetails['db_user'],
             "db_password": orderDetails['db_password']
         }
 

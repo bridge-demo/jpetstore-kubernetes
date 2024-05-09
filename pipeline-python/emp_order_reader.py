@@ -323,7 +323,7 @@ def read_petstore_order( tenantApiUrl, tenantUserId, tenantUserApikey, orderNumb
             "fqdn": serviceDetails['db_url'],
             "db_url": serviceDetails['db_url'],
             "db_user": orderDetails['db_user'],
-            "db_password": orderDetails['db_password']
+            "db_password": orderDetails['db_pass']
         }
 
 if __name__ == "__main__":

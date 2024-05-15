@@ -202,8 +202,8 @@ def parse_petstore_order_details_for_service_chaining(jsonData):
         data["service_instance_id"] = jsonData["data"]["orderItems"][0]["services"][0]["serviceInventoryId"]
         data["service_instance_id2"] = jsonData["data"]["orderItems"][1]["services"][0]["serviceInventoryId"]
         data["service_instance_id3"] = jsonData["data"]["orderItems"][2]["services"][0]["serviceInventoryId"]
-        data["db_user"] = jsonData["data"]["orderItems"][1]["configInfo"][1]["config"][0]["values"][0]["value"]
-        data["db_pass"] = jsonData["data"]["orderItems"][1]["configInfo"][1]["config"][1]["values"][0]["value"]
+        data["db_user"] = jsonData["data"]["orderItems"][1]["configInfo"][0]["config"][2]["values"][0]["value"]
+        data["db_pass"] = jsonData["data"]["orderItems"][1]["configInfo"][0]["config"][3]["values"][0]["value"]
 
         return data
 

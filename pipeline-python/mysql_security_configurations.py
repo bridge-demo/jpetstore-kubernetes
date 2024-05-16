@@ -15,6 +15,7 @@ def get_azure_bearer_token():
     LOGGER.info(os.getenv("GOLD_DEMO_2_SECRET"))
 
     url = f'https://login.microsoftonline.com/{os.getenv("GOLD_DEMO_2_SUBSCRIPTION_ID")}/oauth2/token'
+    LOGGER.info(url)
     
     payload = {
         'grant_type':'client_credentials',
@@ -22,6 +23,8 @@ def get_azure_bearer_token():
         'client_secret': os.getenv("GOLD_DEMO_2_SECRET"),
         'resource':'https://management.azure.com/'
     }
+    
+    LOGGER.info(payload)
     
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     

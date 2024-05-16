@@ -6,12 +6,12 @@ AZURE_ARM_API_HOST = 'https://management.azure.com/subscriptions/55861d01-1b9d-4
 
 def get_azure_bearer_token():
 
-    url = 'https://login.microsoftonline.com/eff7f985-dc58-4935-a906-050609be85c3/oauth2/token'
+    url = f'https://login.microsoftonline.com/{os.getenv("GOLD_DEMO_2_SUBSCRIPTION_ID")}/oauth2/token'
     
     payload = {
         'grant_type':'client_credentials',
-        'client_id':'4ebb05c3-1ea1-41a2-857c-daa93ceab905',
-        'client_secret':'6yk8Q~g6~2NNaqMyEQioGx5oAXEbWCgVNJlovahZ',
+        'client_id': os.getenv("GOLD_DEMO_2_CLIENT_ID"),
+        'client_secret': os.getenv("GOLD_DEMO_2_SECRET"),
         'resource':'https://management.azure.com/'
     }
     

@@ -7,6 +7,7 @@ import build
 from datetime import datetime
 import uuid
 import logging
+import time
 
 from secure import Secure
 import deployMonitoring
@@ -14,6 +15,7 @@ import build
 from testpetstore import Tester
 from deploy import Deploy
 from common_utils import *
+from mysql_security_configurations import *
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger("Pipeline")
@@ -47,6 +49,13 @@ def validate_parameters(parameters: dict) -> dict:
 
 
 def main():
+    
+    change_secure_transport_flag()
+    
+    change_public_network_access()
+    
+    time.sleep(25)
+    
     parserValues = parser()
     pipelineParams = configure_pipeline_status( parserValues )
     LOGGER.info( json.dumps( pipelineParams, indent=3 ) )
@@ -103,6 +112,8 @@ def update_completed_order_status( tenantUrl:str, userID:str, userApiKey:str, or
 
 
 def petstore_pipeline(  params: dict  ):
+    
+    
 
     fullWebImageName = f"{params['docker_user']}/jpetstore-web:latest"
     fullDBImageName = f"{params['docker_user']}/jpetstore-db:latest"

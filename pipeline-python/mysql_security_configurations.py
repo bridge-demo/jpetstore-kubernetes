@@ -1,0 +1,71 @@
+import os, requests
+import logging as LOGGER
+import common_utils
+
+AZURE_ARM_API_HOST = 'https://management.azure.com/subscriptions/55861d01-1b9d-4920-a6ac-8f6669dd69d6/'
+
+def get_azure_bearer_token():
+
+    url = 'https://login.microsoftonline.com/eff7f985-dc58-4935-a906-050609be85c3/oauth2/token'
+    
+    payload = {
+        'grant_type':'client_credentials',
+        'client_id':'4ebb05c3-1ea1-41a2-857c-daa93ceab905',
+        'client_secret':'6yk8Q~g6~2NNaqMyEQioGx5oAXEbWCgVNJlovahZ',
+        'resource':'https://management.azure.com/'
+    }
+    
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    
+    # TODO: Fix: common_utils make_web_requests method doesn't support application/x-www-form-urlencoded as it uses json=payload instead of data=payload.
+    response = requests.post(url, data=payload, headers=headers)
+    
+    if response.status_code >= 200 and response.status_code < 300:
+        data = response.json()
+        return data.get('access_token')
+    
+    return None
+
+
+def change_secure_transport_flag(property_value='OFF', resource_group_name='KPHCV1-d184e44e-8410-dd12-a346-7a1d11d1cbdf', mysql_server_name='mysqldb-3ef1edc41f6150d17966df47935670b4'):
+    bearer_token = get_azure_bearer_token()
+    headers = {
+        'Content-Type':'application/json',
+        'Authorization':'Bearer ' + bearer_token
+    }
+    
+    payload = {
+        'properties': {
+            'value': property_value
+        }
+    }
+    
+    url = AZURE_ARM_API_HOST + f'resourceGroups/{resource_group_name}/providers/Microsoft.DBforMySQL/flexibleServers/{mysql_server_name}/configurations/require_secure_transport?api-version=2023-06-30'
+    
+    response, isSuccessfulResponse, _ = common_utils.make_web_request(requestMethod=requests.put, url=url, headers=headers, payload=payload)
+
+    return response, isSuccessfulResponse
+    
+
+def change_public_network_access(property_value = 'Enabled', resource_group_name='KPHCV1-d184e44e-8410-dd12-a346-7a1d11d1cbdf', mysql_server_name='mysqldb-3ef1edc41f6150d17966df47935670b4'):
+    
+    bearer_token = get_azure_bearer_token()
+    headers = {
+        'Content-Type':'application/json',
+        'Authorization':'Bearer ' + bearer_token
+    }
+    
+    payload = {
+        'properties': {
+            'network': {
+                'publicNetworkAccess': property_value
+            }
+        }
+    }
+    
+    url = AZURE_ARM_API_HOST + f'resourceGroups/{resource_group_name}/providers/Microsoft.DBforMySQL/flexibleServers/{mysql_server_name}?api-version=2023-06-30'
+    
+    response, isSuccessfulResponse, _ = common_utils.make_web_request(requestMethod=requests.patch, url=url, headers=headers, payload=payload)
+    
+    return response, isSuccessfulResponse
+  

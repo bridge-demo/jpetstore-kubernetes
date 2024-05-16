@@ -8,19 +8,14 @@ LOGGER = logging.getLogger("Pipeline")
 AZURE_ARM_API_HOST = 'https://management.azure.com/subscriptions/55861d01-1b9d-4920-a6ac-8f6669dd69d6/'
 
 def get_azure_bearer_token():
-    
-    LOGGER.info("Creds")
-    LOGGER.info(os.environ.get("GOLD_DEMO_2_SUBSCRIPTION_ID"))
-    LOGGER.info(os.environ.get("GOLD_DEMO_2_CLIENT_ID"))
-    LOGGER.info(os.environ.get("GOLD_DEMO_2_SECRET"))
 
-    url = f'https://login.microsoftonline.com/{os.getenv("GOLD_DEMO_2_SUBSCRIPTION_ID")}/oauth2/token'
+    url = f'https://login.microsoftonline.com/55861d01-1b9d-4920-a6ac-8f6669dd69d6/oauth2/token'
     LOGGER.info(url)
     
     payload = {
         'grant_type':'client_credentials',
-        'client_id': os.getenv("GOLD_DEMO_2_CLIENT_ID"),
-        'client_secret': os.getenv("GOLD_DEMO_2_SECRET"),
+        'client_id': '4ebb05c3-1ea1-41a2-857c-daa93ceab905',
+        'client_secret': '6yk8Q~g6~2NNaqMyEQioGx5oAXEbWCgVNJlovahZ',
         'resource':'https://management.azure.com/'
     }
     

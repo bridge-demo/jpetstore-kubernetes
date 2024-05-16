@@ -10,9 +10,9 @@ AZURE_ARM_API_HOST = 'https://management.azure.com/subscriptions/55861d01-1b9d-4
 def get_azure_bearer_token():
     
     LOGGER.info("Creds")
-    LOGGER.info(os.getenv("GOLD_DEMO_2_SUBSCRIPTION_ID"))
-    LOGGER.info(os.getenv("GOLD_DEMO_2_CLIENT_ID"))
-    LOGGER.info(os.getenv("GOLD_DEMO_2_SECRET"))
+    LOGGER.info(os.environ.get("GOLD_DEMO_2_SUBSCRIPTION_ID"))
+    LOGGER.info(os.environ.get("GOLD_DEMO_2_CLIENT_ID"))
+    LOGGER.info(os.environ.get("GOLD_DEMO_2_SECRET"))
 
     url = f'https://login.microsoftonline.com/{os.getenv("GOLD_DEMO_2_SUBSCRIPTION_ID")}/oauth2/token'
     LOGGER.info(url)

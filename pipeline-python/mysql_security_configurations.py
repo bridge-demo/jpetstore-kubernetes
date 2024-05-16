@@ -1,15 +1,18 @@
 import os, requests
-import logging as LOGGER
+import logging
 import common_utils
+
+logging.basicConfig(level=logging.INFO)
+LOGGER = logging.getLogger("Pipeline")
 
 AZURE_ARM_API_HOST = 'https://management.azure.com/subscriptions/55861d01-1b9d-4920-a6ac-8f6669dd69d6/'
 
 def get_azure_bearer_token():
     
-    print("Creds")
-    print(os.getenv("GOLD_DEMO_2_SUBSCRIPTION_ID"))
-    print(os.getenv("GOLD_DEMO_2_CLIENT_ID"))
-    print(os.getenv("GOLD_DEMO_2_SECRET"))
+    LOGGER.info("Creds")
+    LOGGER.info(os.getenv("GOLD_DEMO_2_SUBSCRIPTION_ID"))
+    LOGGER.info(os.getenv("GOLD_DEMO_2_CLIENT_ID"))
+    LOGGER.info(os.getenv("GOLD_DEMO_2_SECRET"))
 
     url = f'https://login.microsoftonline.com/{os.getenv("GOLD_DEMO_2_SUBSCRIPTION_ID")}/oauth2/token'
     

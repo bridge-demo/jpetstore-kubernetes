@@ -52,9 +52,11 @@ def main():
     
     change_secure_transport_flag()
     
+    time.sleep(60)
+    
     change_public_network_access()
     
-    time.sleep(25)
+    time.sleep(60)
     
     parserValues = parser()
     pipelineParams = configure_pipeline_status( parserValues )

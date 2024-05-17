@@ -10,6 +10,7 @@ import uuid
 
 from emp_order_reader import read_petstore_order
 from common_utils import *
+from mysql_security_configurations import *
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger("Deploy")
@@ -49,6 +50,20 @@ class Deploy:
             orderNumber=orderNumber,
             createKubeconfigFile=True
         )
+        
+        LOGGER.info("DB Details")
+        LOGGER.info(resource_group_name=petstore_details['resource_group'])
+        LOGGER.info(resource_group_name=petstore_details['db_name'])
+        
+        change_secure_transport_flag(resource_group_name=petstore_details['resource_group'], mysql_server_name=petstore_details['db_name'])
+    
+        time.sleep(60)
+        
+        change_public_network_access(resource_group_name=petstore_details['resource_group'], mysql_server_name=petstore_details['db_name'])
+        
+        time.sleep(60)
+        
+        
         startTime = datetime.datetime.now()
         try:
             self.deploy_petstore_helmchart(

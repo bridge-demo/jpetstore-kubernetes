@@ -157,6 +157,7 @@ def parse_service_instance_details( jsonData ):
 
     return response
 
+
 def get_order_details_for_service_chaining(tenant_user_id, tenant_system_user_api_key, order_number, tenant_api_url, maxRetries=4, currentReties=0):
     """
     Returns a dictionary with 'db_password', 'service_instance_id' keys.
@@ -196,6 +197,7 @@ def get_order_details_for_service_chaining(tenant_user_id, tenant_system_user_ap
     LOGGER.info("Done reading order Details")
     return details
 
+
 def parse_petstore_order_details_for_service_chaining(jsonData):
     try:
         data = {}
@@ -211,6 +213,7 @@ def parse_petstore_order_details_for_service_chaining(jsonData):
         LOGGER.error("Error: Fail to parse petstore order details (parse_petstore_order_details)")
         LOGGER.error(f"Data to parse: \n{jsonData}")
         exit(1)
+
 
 def get_petstore_service_chaining_details(tenant_system_user_id, tenant_system_user_api_key, service_instance_id, service_instance_id2, tenant_api_url):
 
@@ -246,11 +249,14 @@ def get_petstore_service_chaining_details(tenant_system_user_id, tenant_system_u
 
     return details
 
+
 def parse_service_chaining_details(jsonData, jsonData2):
     kubeconfig = ""
+    kubenetes_fqdn = ""
     fqdn = ""
     db_url = ""
-    templist = []
+    db_name = ""
+    resource_group = ""
     #LOGGER.info(f"Number of resources in order: {len(jsonData['resources'])}" )
 
     for resouce in jsonData["resources"]:
@@ -263,21 +269,28 @@ def parse_service_chaining_details(jsonData, jsonData2):
         if resouce["resourceType"] == "azurerm_kubernetes_cluster":
             for output in resouce["templateOutputProperties"]:
                 if output["name"] == "Http Application Routing Zone Name":
-                    templist.append(output["value"])
+                    kubenetes_fqdn = output["value"]
 
 
     for resouce in jsonData2["resources"]:
         if resouce["resourceType"] == "azurerm_mysql_flexible_server":
             for output in resouce["templateOutputProperties"]:
                 if output["name"] == "Fqdn":
-                    templist.append(output["value"])
+                    fqdn = output["value"]
+                elif output["name"] == "Name":
+                    db_name = output["value"]
+                elif output["name"] == "Resource Group Name":
+                    resource_group = output["value"]
 
 
     return {
         "tmp_kube_config": kubeconfig,
-        "fqdn": templist[0],
-        "db_url": templist[1],
+        "fqdn": fqdn,
+        "db_url": fqdn,
+        "db_name": db_name,
+        "resource_group": resource_group
     }
+
 
 def package_all_details(tenant_system_user_id, tenant_system_user_api_key, order_number, service_instance_id, service_instance_id2, tenant_api_url):
     details = {}
@@ -289,6 +302,7 @@ def package_all_details(tenant_system_user_id, tenant_system_user_api_key, order
     details.update(service_details)
 
     return details
+
 
 def read_petstore_order( tenantApiUrl, tenantUserId, tenantUserApikey, orderNumber, createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config" ):
     tenantApiUrl = common_utils.sanitazeTenantUrl(tenantApiUrl, urlType="api")
@@ -331,8 +345,11 @@ def read_petstore_order( tenantApiUrl, tenantUserId, tenantUserApikey, orderNumb
             "fqdn": serviceDetails['fqdn'],
             "db_url": serviceDetails['db_url'],
             "db_user": orderDetails['db_user'],
-            "db_password": orderDetails['db_pass']
+            "db_password": orderDetails['db_pass'],
+            "resource_group":serviceDetails['resource_group'],
+            "db_name":serviceDetails['db_name']
         }
+
 
 if __name__ == "__main__":
     LOGGER.info(

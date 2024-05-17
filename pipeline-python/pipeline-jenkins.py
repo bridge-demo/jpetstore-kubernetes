@@ -7,19 +7,16 @@ import build
 from datetime import datetime
 import uuid
 import logging
-import time
-
 from secure import Secure
 import deployMonitoring
 import build
 from testpetstore import Tester
 from deploy import Deploy
 from common_utils import *
-from mysql_security_configurations import *
+
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger("Pipeline")
-
 STATE_FILENAME = "jpetstore-pipeline-status.json"
 
 def parser( validate_parameters = False ) -> dict:
@@ -49,14 +46,6 @@ def validate_parameters(parameters: dict) -> dict:
 
 
 def main():
-    
-    change_secure_transport_flag()
-    
-    time.sleep(60)
-    
-    change_public_network_access()
-    
-    time.sleep(60)
     
     parserValues = parser()
     pipelineParams = configure_pipeline_status( parserValues )

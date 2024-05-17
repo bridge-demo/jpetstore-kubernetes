@@ -34,7 +34,7 @@ def get_azure_bearer_token():
     return None
 
 
-def change_secure_transport_flag(property_value='OFF', resource_group_name='KPHCV1-d184e44e-8410-dd12-a346-7a1d11d1cbdf', mysql_server_name='mysqldb-3ef1edc41f6150d17966df47935670b4'):
+def change_secure_transport_flag(property_value='OFF', resource_group_name='', mysql_server_name=''):
     bearer_token = get_azure_bearer_token()
     headers = {
         'Content-Type':'application/json',
@@ -54,7 +54,7 @@ def change_secure_transport_flag(property_value='OFF', resource_group_name='KPHC
     return response, isSuccessfulResponse
     
 
-def change_public_network_access(property_value = 'Enabled', resource_group_name='KPHCV1-d184e44e-8410-dd12-a346-7a1d11d1cbdf', mysql_server_name='mysqldb-3ef1edc41f6150d17966df47935670b4'):
+def change_public_network_access(resource_group_name='', mysql_server_name=''):
     
     bearer_token = get_azure_bearer_token()
     headers = {

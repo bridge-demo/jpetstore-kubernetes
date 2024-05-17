@@ -63,14 +63,13 @@ def change_public_network_access(property_value = 'Enabled', resource_group_name
     }
     
     payload = {
-        'properties': {
-            'network': {
-                'publicNetworkAccess': property_value
-            }
-        }
+        "properties": {
+            "startIpAddress": "0.0.0.0",
+            "endIpAddress": "255.255.255.255"
     }
+}
     
-    url = AZURE_ARM_API_HOST + f'resourceGroups/{resource_group_name}/providers/Microsoft.DBforMySQL/flexibleServers/{mysql_server_name}?api-version=2023-06-30'
+    url = AZURE_ARM_API_HOST + f'resourceGroups/{resource_group_name}/providers/Microsoft.DBforMySQL/flexibleServers/{mysql_server_name}/firewallRules/AllowAllAzureServices?api-version=2023-06-30'
     
     response, isSuccessfulResponse, _ = common_utils.make_web_request(requestMethod=requests.patch, url=url, headers=headers, payload=payload)
     

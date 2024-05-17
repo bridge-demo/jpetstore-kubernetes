@@ -71,7 +71,7 @@ def change_public_network_access(property_value = 'Enabled', resource_group_name
     
     url = AZURE_ARM_API_HOST + f'resourceGroups/{resource_group_name}/providers/Microsoft.DBforMySQL/flexibleServers/{mysql_server_name}/firewallRules/AllowAllAzureServices?api-version=2023-06-30'
     
-    response, isSuccessfulResponse, _ = common_utils.make_web_request(requestMethod=requests.patch, url=url, headers=headers, payload=payload)
+    response, isSuccessfulResponse, _ = common_utils.make_web_request(requestMethod=requests.put, url=url, headers=headers, payload=payload)
     
     return response, isSuccessfulResponse
   

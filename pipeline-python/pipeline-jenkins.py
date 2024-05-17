@@ -13,7 +13,9 @@ import build
 from testpetstore import Tester
 from deploy import Deploy
 from common_utils import *
-
+from emp_order_reader import read_petstore_order
+from mysql_security_configurations import *
+import time
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger("Pipeline")
@@ -49,10 +51,26 @@ def main():
     
     parserValues = parser()
     pipelineParams = configure_pipeline_status( parserValues )
+    tenantUrl = sanitazeTenantUrl(pipelineParams['tenant_url'])
+    
+    petstore_details = read_petstore_order(tenantApiUrl=tenantUrl, tenantUserId=pipelineParams['user_id'], tenantUserApikey=pipelineParams['user_api_key'], orderNumber=pipelineParams['order_number'], createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config")
+    
+    LOGGER.info("DB Details")
+    LOGGER.info("petstore_details")
+    
+    
+    change_secure_transport_flag(resource_group_name=petstore_details['resource_group'], mysql_server_name=petstore_details['db_name'])
+    
+    time.sleep(60)
+    
+    change_public_network_access(resource_group_name=petstore_details['resource_group'], mysql_server_name=petstore_details['db_name'])
+    
+    time.sleep(60)
+    
     LOGGER.info( json.dumps( pipelineParams, indent=3 ) )
     buildUrl =  os.getenv( "BUILD_URL", "http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console" )
 
-    tenantUrl = sanitazeTenantUrl(pipelineParams['tenant_url'])
+    
 
     error = update_completed_order_status( 
         tenantUrl=tenantUrl, 

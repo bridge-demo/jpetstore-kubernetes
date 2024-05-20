@@ -345,9 +345,9 @@ def read_petstore_order( tenantApiUrl, tenantUserId, tenantUserApikey, orderNumb
             "fqdn": serviceDetails['fqdn'],
             "db_url": serviceDetails['db_url'],
             "db_user": orderDetails['db_user'],
-            "db_password": orderDetails['db_pass'],
-            "resource_group":serviceDetails['resource_group'],
-            "db_name":serviceDetails['db_name']
+            "db_password": orderDetails['db_pass']
+            # "resource_group":serviceDetails['resource_group'],
+            # "db_name":serviceDetails['db_name']
         }
 
 

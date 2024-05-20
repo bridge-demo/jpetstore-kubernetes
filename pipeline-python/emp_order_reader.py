@@ -248,7 +248,7 @@ def get_petstore_service_chaining_details(tenant_system_user_id, tenant_system_u
     
     details = parse_service_chaining_details(data, data2)
     LOGGER.info("Done reading service instance details")
-    LOGGER.Info(details)
+    LOGGER.info(details)
 
     return details
 

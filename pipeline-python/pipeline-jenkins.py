@@ -13,7 +13,7 @@ import build
 from testpetstore import Tester
 from deploy import Deploy
 from common_utils import *
-from emp_order_reader import read_petstore_order
+from emp_order_reader import read_petstore_order, is_order_ready
 from mysql_security_configurations import *
 import time
 
@@ -55,6 +55,8 @@ def main():
     
     
     try:
+        LOGGER.info( f'Processing: URL: {tenantUrl} - API Key: {pipelineParams['user_api_key']} - Order Number: {pipelineParams["order_number"]} - User ID: {pipelineParams["user_id"]}' )
+        if is_order_ready(tenantApiUrl=tenantUrl, tenantUserApikey=pipelineParams['user_api_key'], tenantUserId=pipelineParams['user_id'], orderNumber=pipelineParams["order_number"]):
         # petstore_details = read_petstore_order(tenantApiUrl=tenantUrl, tenantUserId=pipelineParams['user_id'], tenantUserApikey=pipelineParams['user_api_key'], orderNumber=pipelineParams['order_number'], createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config")
     
         # LOGGER.info("DB Details")
@@ -88,9 +90,9 @@ def main():
             petstore_pipeline(params=pipelineParams)
 
 
-        # else:
-        #     logging.error(
-        #     f"""Error: Unable to retrieve DB details  """)
+        else:
+            logging.info(
+            f"""The Services are not ready yet!!  """)
         
     except Exception as error:
         logging.error(

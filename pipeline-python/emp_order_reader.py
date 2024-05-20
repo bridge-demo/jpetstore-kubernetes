@@ -356,11 +356,34 @@ def read_petstore_order( tenantApiUrl, tenantUserId, tenantUserApikey, orderNumb
             "fqdn": serviceDetails['fqdn'],
             "db_url": serviceDetails['db_url'],
             "db_user": orderDetails['db_user'],
-            "db_password": orderDetails['db_pass']
-            # "resource_group":serviceDetails['resource_group'],
-            # "db_name":serviceDetails['db_name']
+            "db_password": orderDetails['db_pass'],
+            "resource_group":serviceDetails['resource_group'],
+            "db_name":serviceDetails['db_name']
         }
 
+
+# Validates that ALL Services are up and running.
+def is_order_ready(tenantApiUrl, tenantUserId, tenantUserApikey, orderNumber):
+    order_details = get_order_details_for_service_chaining(tenant_api_url=tenantApiUrl, tenant_user_id=tenantUserId, tenant_system_user_api_key=tenantUserApikey, order_number=orderNumber)
+    print(order_details["service_instance_id"])
+    if order_details and order_details["service_instance_id"] and order_details["service_instance_id2"] and order_details["service_instance_id3"]:
+        LOGGER.info("Reading service instance details")
+        ENDPOINT = f'{tenantApiUrl}v3/api/services/azure/{order_details["service_instance_id"]}'
+        ENDPOINT2 = f'{tenantApiUrl}v3/api/services/azure/{order_details["service_instance_id2"]}'
+        ENDPOINT3 = f'{tenantApiUrl}v3/api/services/azure/{order_details["service_instance_id3"]}'
+        headers = {
+            "username": tenantUserId, 
+            "apikey": tenantUserApikey
+        }
+
+        response, isSuccessfulResponse, _  = common_utils.make_web_request(requestMethod=requests.get, url=ENDPOINT, headers=headers)
+        response2, isSuccessfulResponse2, _ = common_utils.make_web_request(requestMethod=requests.get, url=ENDPOINT2, headers=headers)
+        response3, isSuccessfulResponse3, _ = common_utils.make_web_request(requestMethod=requests.get, url=ENDPOINT3, headers=headers)
+        
+        
+        return isSuccessfulResponse and isSuccessfulResponse2 and isSuccessfulResponse3
+
+    return False
 
 if __name__ == "__main__":
     LOGGER.info(

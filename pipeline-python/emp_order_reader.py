@@ -230,19 +230,24 @@ def get_petstore_service_chaining_details(tenant_system_user_id, tenant_system_u
     }
 
     response, isSuccessfulResponse, _  = common_utils.make_web_request(requestMethod=requests.get, url=ENDPOINT, headers=headers)
-    response2, isSuccessfulResponse, _ = common_utils.make_web_request(requestMethod=requests.get, url=ENDPOINT2, headers=headers)
+    response2, isSuccessfulResponse2, _ = common_utils.make_web_request(requestMethod=requests.get, url=ENDPOINT2, headers=headers)
 
     timeOutError = response.status_code == 504
     if timeOutError:
         LOGGER.warning("Warning: Time out getting petstore service instance details")
     
-    if not isSuccessfulResponse:
+    if not isSuccessfulResponse or not isSuccessfulResponse2:
         LOGGER.error("Error:  'get_petstore_service_instance_details' func was unable to get a successful response")
         exit(1)
     
     isValidJson = common_utils.validateJSON( response.text )
     if not isValidJson:
         LOGGER.error(f"Error: Expecting a json response from {ENDPOINT} and got:\n{response.text}")
+        exit(1)
+    
+    isValidJson = common_utils.validateJSON( response2.text )
+    if not isValidJson:
+        LOGGER.error(f"Error: Expecting a json response from {ENDPOINT} and got:\n{response2.text}")
         exit(1)
 
     data = response.json()
@@ -257,10 +262,13 @@ def get_petstore_service_chaining_details(tenant_system_user_id, tenant_system_u
 
 def parse_service_chaining_details(jsonData, jsonData2):
     kubeconfig = ""
+    kubenetes_fqdn = ""
     fqdn = ""
     db_url = ""
-    templist = []
+    db_name = ""
+    resource_group = ""
     #LOGGER.info(f"Number of resources in order: {len(jsonData['resources'])}" )
+
 
     for resouce in jsonData["resources"]:
         if resouce["resourceType"] == "azurerm_kubernetes_cluster":
@@ -272,22 +280,26 @@ def parse_service_chaining_details(jsonData, jsonData2):
         if resouce["resourceType"] == "azurerm_kubernetes_cluster":
             for output in resouce["templateOutputProperties"]:
                 if output["name"] == "Http Application Routing Zone Name":
-                    templist.append(output["value"])
+                    kubenetes_fqdn = output["value"]
 
 
     for resouce in jsonData2["resources"]:
         if resouce["resourceType"] == "azurerm_mysql_flexible_server":
             for output in resouce["templateOutputProperties"]:
                 if output["name"] == "Fqdn":
-                    templist.append(output["value"])
-                    
-    print(templist)
+                    fqdn = output["value"]
+                elif output["name"] == "Name":
+                    db_name = output["value"]
+                elif output["name"] == "Resource Group Name":
+                    resource_group = output["value"]
 
 
     return {
         "tmp_kube_config": kubeconfig,
-        "fqdn": templist[0],
-        "db_url": templist[1],
+        "fqdn": fqdn,
+        "db_url": fqdn,
+        "db_name": db_name,
+        "resource_group": resource_group
     }
 
 

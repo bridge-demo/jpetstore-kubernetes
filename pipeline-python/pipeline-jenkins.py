@@ -58,42 +58,42 @@ def main():
     try:
         LOGGER.info( f'Processing: URL: {tenantAPIUrl} - API Key: {pipelineParams["user_api_key"]} - Order Number: {pipelineParams["order_number"]} - User ID: {pipelineParams["user_id"]}' )
         if is_order_ready(tenantApiUrl=tenantAPIUrl, tenantUserApikey=pipelineParams['user_api_key'], tenantUserId=pipelineParams['user_id'], orderNumber=pipelineParams["order_number"]):
-        # petstore_details = read_petstore_order(tenantApiUrl=tenantUrl, tenantUserId=pipelineParams['user_id'], tenantUserApikey=pipelineParams['user_api_key'], orderNumber=pipelineParams['order_number'], createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config")
-    
-        # LOGGER.info("DB Details")
-        # LOGGER.info("petstore_details")
+            petstore_details = read_petstore_order(tenantApiUrl=tenantUrl, tenantUserId=pipelineParams['user_id'], tenantUserApikey=pipelineParams['user_api_key'], orderNumber=pipelineParams['order_number'], createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config")
         
-        # if petstore_details and petstore_details['resource_group'] and petstore_details['db_name']: 
-        
-        #     change_secure_transport_flag(resource_group_name=petstore_details['resource_group'], mysql_server_name=petstore_details['db_name'])
+            LOGGER.info("DB Details")
+            LOGGER.info("petstore_details")
             
-        #     time.sleep(60)
+            if petstore_details and petstore_details['resource_group'] and petstore_details['db_name']: 
             
-        #     change_public_network_access(resource_group_name=petstore_details['resource_group'], mysql_server_name=petstore_details['db_name'])
-            
-        #     time.sleep(60)
+                change_secure_transport_flag(resource_group_name=petstore_details['resource_group'], mysql_server_name=petstore_details['db_name'])
+                
+                time.sleep(60)
+                
+                change_public_network_access(resource_group_name=petstore_details['resource_group'], mysql_server_name=petstore_details['db_name'])
+                
+                time.sleep(60)
             
             LOGGER.info( json.dumps( pipelineParams, indent=3 ) )
             buildUrl =  os.getenv( "BUILD_URL", "http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console" )
-
-            
-            error = update_completed_order_status( 
-                tenantUrl=tenantUrl, 
-                userID=pipelineParams['user_id'], 
-                userApiKey=pipelineParams['user_api_key'], 
-                orderNumber=pipelineParams["order_number"],   
-                fulfillmentId=pipelineParams["fulfillment_id"],
-                buildUrl=buildUrl
-            )
-            if error:
-                LOGGER.error("Fail to update order status")
-
-            petstore_pipeline(params=pipelineParams)
-
-
+        
         else:
             logging.info(
             f"""The Services are not ready yet!!  """)
+
+            
+        error = update_completed_order_status( 
+            tenantUrl=tenantUrl, 
+            userID=pipelineParams['user_id'], 
+            userApiKey=pipelineParams['user_api_key'], 
+            orderNumber=pipelineParams["order_number"],   
+            fulfillmentId=pipelineParams["fulfillment_id"],
+            buildUrl=buildUrl
+        )
+        if error:
+            LOGGER.error("Fail to update order status")
+
+        petstore_pipeline(params=pipelineParams)
+        
         
     except Exception as error:
         logging.error(

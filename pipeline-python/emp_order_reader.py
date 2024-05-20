@@ -195,6 +195,8 @@ def get_order_details_for_service_chaining(tenant_user_id, tenant_system_user_ap
     #print(data) #Prints the entire JSON response
     details = parse_petstore_order_details_for_service_chaining( data )
     LOGGER.info("Done reading order Details")
+    LOGGER.info(details)
+    
     return details
 
 
@@ -246,6 +248,7 @@ def get_petstore_service_chaining_details(tenant_system_user_id, tenant_system_u
     
     details = parse_service_chaining_details(data, data2)
     LOGGER.info("Done reading service instance details")
+    LOGGER.Info(details)
 
     return details
 

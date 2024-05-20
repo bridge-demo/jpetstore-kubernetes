@@ -278,6 +278,8 @@ def parse_service_chaining_details(jsonData, jsonData2):
             for output in resouce["templateOutputProperties"]:
                 if output["name"] == "Fqdn":
                     templist.append(output["value"])
+                    
+    print(templist)
 
 
     return {

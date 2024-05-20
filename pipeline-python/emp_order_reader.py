@@ -277,18 +277,18 @@ def parse_service_chaining_details(jsonData, jsonData2):
             for output in resouce["templateOutputProperties"]:
                 if output["name"] == "Fqdn":
                     fqdn = output["value"]
-                elif output["name"] == "Name":
-                    db_name = output["value"]
-                elif output["name"] == "Resource Group Name":
-                    resource_group = output["value"]
+                # elif output["name"] == "Name":
+                #     db_name = output["value"]
+                # elif output["name"] == "Resource Group Name":
+                #     resource_group = output["value"]
 
 
     return {
         "tmp_kube_config": kubeconfig,
         "fqdn": fqdn,
-        "db_url": fqdn,
-        "db_name": db_name,
-        "resource_group": resource_group
+        "db_url": fqdn
+        # "db_name": db_name,
+        # "resource_group": resource_group
     }
 
 

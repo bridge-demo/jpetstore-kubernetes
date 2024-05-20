@@ -54,28 +54,28 @@ def main():
     tenantUrl = sanitazeTenantUrl(pipelineParams['tenant_url'])
     
     
-    # try:
-    #     petstore_details = read_petstore_order(tenantApiUrl=tenantUrl, tenantUserId=pipelineParams['user_id'], tenantUserApikey=pipelineParams['user_api_key'], orderNumber=pipelineParams['order_number'], createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config")
+    try:
+        petstore_details = read_petstore_order(tenantApiUrl=tenantUrl, tenantUserId=pipelineParams['user_id'], tenantUserApikey=pipelineParams['user_api_key'], orderNumber=pipelineParams['order_number'], createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config")
     
-    #     LOGGER.info("DB Details")
-    #     LOGGER.info("petstore_details")
+        LOGGER.info("DB Details")
+        LOGGER.info("petstore_details")
         
-    #     if petstore_details['resource_group'] and petstore_details['db_name']: 
+        if petstore_details['resource_group'] and petstore_details['db_name']: 
         
-    #         change_secure_transport_flag(resource_group_name=petstore_details['resource_group'], mysql_server_name=petstore_details['db_name'])
+            change_secure_transport_flag(resource_group_name=petstore_details['resource_group'], mysql_server_name=petstore_details['db_name'])
             
-    #         time.sleep(60)
+            time.sleep(60)
             
-    #         change_public_network_access(resource_group_name=petstore_details['resource_group'], mysql_server_name=petstore_details['db_name'])
+            change_public_network_access(resource_group_name=petstore_details['resource_group'], mysql_server_name=petstore_details['db_name'])
             
-    #         time.sleep(60)
-    #     else:
-    #         logging.error(
-    #         f"""Error: Unable to retrieve DB details  """)
+            time.sleep(60)
+        else:
+            logging.error(
+            f"""Error: Unable to retrieve DB details  """)
         
-    # except Exception as error:
-    #     logging.error(
-    #         f"""Error:  {error}  """)
+    except Exception as error:
+        logging.error(
+            f"""Error:  {error}  """)
         
     
     LOGGER.info( json.dumps( pipelineParams, indent=3 ) )

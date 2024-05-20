@@ -72,39 +72,39 @@ def main():
                 change_public_network_access(resource_group_name=petstore_details['resource_group'], mysql_server_name=petstore_details['db_name'])
                 
                 time.sleep(60)
-            
-            LOGGER.info( json.dumps( pipelineParams, indent=3 ) )
-            buildUrl =  os.getenv( "BUILD_URL", "http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console" )
-        
         else:
             logging.info(
             f"""The Services are not ready yet!!  """)
-
             
-        error = update_completed_order_status( 
-            tenantUrl=tenantUrl, 
-            userID=pipelineParams['user_id'], 
-            userApiKey=pipelineParams['user_api_key'], 
-            orderNumber=pipelineParams["order_number"],   
-            fulfillmentId=pipelineParams["fulfillment_id"],
-            buildUrl=buildUrl
-        )
-        if error:
-            LOGGER.error("Fail to update order status")
-
-        petstore_pipeline(params=pipelineParams)
-        
-        
     except Exception as error:
         logging.error(
             f"""Error:  {error}  """)
         
-    
+    LOGGER.info( json.dumps( pipelineParams, indent=3 ) )
+    buildUrl =  os.getenv( "BUILD_URL", "http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console" )
+
+        
+    error = update_completed_order_status( 
+        tenantUrl=tenantUrl, 
+        userID=pipelineParams['user_id'], 
+        userApiKey=pipelineParams['user_api_key'], 
+        orderNumber=pipelineParams["order_number"],   
+        fulfillmentId=pipelineParams["fulfillment_id"],
+        buildUrl=buildUrl
+    )
+    if error:
+        LOGGER.error("Fail to update order status")
+
+    petstore_pipeline(params=pipelineParams)
+        
+        
    
 def update_completed_order_status( tenantUrl:str, userID:str, userApiKey:str, orderNumber: str, fulfillmentId:str, buildUrl:str ):
     """
     This function will return an error string only in case of failure
     """
+    
+    LOGGER.info("Update_completed_order_status")
     ##If status file is not json valid create a new one and rename the existing one to .old
 
     tenantUrl = sanitazeTenantUrl(tenantUrl, urlType='api')

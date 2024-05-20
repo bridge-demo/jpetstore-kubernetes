@@ -60,7 +60,7 @@ def main():
         LOGGER.info("DB Details")
         LOGGER.info("petstore_details")
         
-        if petstore_details['resource_group'] and petstore_details['db_name']: 
+        if petstore_details and petstore_details['resource_group'] and petstore_details['db_name']: 
         
             change_secure_transport_flag(resource_group_name=petstore_details['resource_group'], mysql_server_name=petstore_details['db_name'])
             

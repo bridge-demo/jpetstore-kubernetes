@@ -55,20 +55,20 @@ def main():
     
     
     try:
-        petstore_details = read_petstore_order(tenantApiUrl=tenantUrl, tenantUserId=pipelineParams['user_id'], tenantUserApikey=pipelineParams['user_api_key'], orderNumber=pipelineParams['order_number'], createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config")
+        # petstore_details = read_petstore_order(tenantApiUrl=tenantUrl, tenantUserId=pipelineParams['user_id'], tenantUserApikey=pipelineParams['user_api_key'], orderNumber=pipelineParams['order_number'], createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config")
     
-        LOGGER.info("DB Details")
-        LOGGER.info("petstore_details")
+        # LOGGER.info("DB Details")
+        # LOGGER.info("petstore_details")
         
-        if petstore_details and petstore_details['resource_group'] and petstore_details['db_name']: 
+        # if petstore_details and petstore_details['resource_group'] and petstore_details['db_name']: 
         
-            change_secure_transport_flag(resource_group_name=petstore_details['resource_group'], mysql_server_name=petstore_details['db_name'])
+        #     change_secure_transport_flag(resource_group_name=petstore_details['resource_group'], mysql_server_name=petstore_details['db_name'])
             
-            time.sleep(60)
+        #     time.sleep(60)
             
-            change_public_network_access(resource_group_name=petstore_details['resource_group'], mysql_server_name=petstore_details['db_name'])
+        #     change_public_network_access(resource_group_name=petstore_details['resource_group'], mysql_server_name=petstore_details['db_name'])
             
-            time.sleep(60)
+        #     time.sleep(60)
             
             LOGGER.info( json.dumps( pipelineParams, indent=3 ) )
             buildUrl =  os.getenv( "BUILD_URL", "http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console" )
@@ -88,9 +88,9 @@ def main():
             petstore_pipeline(params=pipelineParams)
 
 
-        else:
-            logging.error(
-            f"""Error: Unable to retrieve DB details  """)
+        # else:
+        #     logging.error(
+        #     f"""Error: Unable to retrieve DB details  """)
         
     except Exception as error:
         logging.error(

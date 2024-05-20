@@ -52,11 +52,12 @@ def main():
     parserValues = parser()
     pipelineParams = configure_pipeline_status( parserValues )
     tenantUrl = sanitazeTenantUrl(pipelineParams['tenant_url'])
+    tenantAPIUrl = sanitazeTenantUrl(tenantUrl, urlType='api')
     
     
     try:
-        LOGGER.info( f'Processing: URL: {tenantUrl} - API Key: {pipelineParams["user_api_key"]} - Order Number: {pipelineParams["order_number"]} - User ID: {pipelineParams["user_id"]}' )
-        if is_order_ready(tenantApiUrl=tenantUrl, tenantUserApikey=pipelineParams['user_api_key'], tenantUserId=pipelineParams['user_id'], orderNumber=pipelineParams["order_number"]):
+        LOGGER.info( f'Processing: URL: {tenantAPIUrl} - API Key: {pipelineParams["user_api_key"]} - Order Number: {pipelineParams["order_number"]} - User ID: {pipelineParams["user_id"]}' )
+        if is_order_ready(tenantApiUrl=tenantAPIUrl, tenantUserApikey=pipelineParams['user_api_key'], tenantUserId=pipelineParams['user_id'], orderNumber=pipelineParams["order_number"]):
         # petstore_details = read_petstore_order(tenantApiUrl=tenantUrl, tenantUserId=pipelineParams['user_id'], tenantUserApikey=pipelineParams['user_api_key'], orderNumber=pipelineParams['order_number'], createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config")
     
         # LOGGER.info("DB Details")

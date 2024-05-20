@@ -255,11 +255,9 @@ def get_petstore_service_chaining_details(tenant_system_user_id, tenant_system_u
 
 def parse_service_chaining_details(jsonData, jsonData2):
     kubeconfig = ""
-    kubenetes_fqdn = ""
     fqdn = ""
     db_url = ""
-    db_name = ""
-    resource_group = ""
+    templist = []
     #LOGGER.info(f"Number of resources in order: {len(jsonData['resources'])}" )
 
     for resouce in jsonData["resources"]:
@@ -272,26 +270,20 @@ def parse_service_chaining_details(jsonData, jsonData2):
         if resouce["resourceType"] == "azurerm_kubernetes_cluster":
             for output in resouce["templateOutputProperties"]:
                 if output["name"] == "Http Application Routing Zone Name":
-                    kubenetes_fqdn = output["value"]
+                    templist.append(output["value"])
 
 
     for resouce in jsonData2["resources"]:
         if resouce["resourceType"] == "azurerm_mysql_flexible_server":
             for output in resouce["templateOutputProperties"]:
                 if output["name"] == "Fqdn":
-                    fqdn = output["value"]
-                # elif output["name"] == "Name":
-                #     db_name = output["value"]
-                # elif output["name"] == "Resource Group Name":
-                #     resource_group = output["value"]
+                    templist.append(output["value"])
 
 
     return {
         "tmp_kube_config": kubeconfig,
-        "fqdn": fqdn,
-        "db_url": fqdn
-        # "db_name": db_name,
-        # "resource_group": resource_group
+        "fqdn": templist[0],
+        "db_url": templist[1],
     }
 
 

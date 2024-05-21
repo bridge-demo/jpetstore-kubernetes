@@ -347,7 +347,7 @@ def read_petstore_order( tenantApiUrl, tenantUserId, tenantUserApikey, orderNumb
         tenant_system_user_id=tenantUserId,
         tenant_system_user_api_key=tenantUserApikey,
         service_instance_id=orderDetails["service_instance_id"],
-        service_instance_id2=orderDetails["service_instance_id2"],
+        service_instance_id2=orderDetails["service_instance_id3"],
         tenant_api_url=tenantApiUrl
     )
 
@@ -367,7 +367,7 @@ def read_petstore_order( tenantApiUrl, tenantUserId, tenantUserApikey, orderNumb
         }
 
 
-# Validates that ALL Services are up and running.
+# Reviews all Service Inventory IDs associated with the order and returns True when the DB is ready to be pre-configured, along with the DB Name and Resource Group.
 def is_db_ready(tenantApiUrl, tenantUserId, tenantUserApikey, orderNumber):
     order_details = get_order_details_for_service_chaining(tenant_api_url=tenantApiUrl, tenant_user_id=tenantUserId, tenant_system_user_api_key=tenantUserApikey, order_number=orderNumber)
     print(order_details["service_instance_id"])

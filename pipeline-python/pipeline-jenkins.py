@@ -57,19 +57,21 @@ def main():
     
     try:
         LOGGER.info( f'Processing: URL: {tenantAPIUrl} - API Key: {pipelineParams["user_api_key"]} - Order Number: {pipelineParams["order_number"]} - User ID: {pipelineParams["user_id"]}' )
-        if is_db_ready(tenantApiUrl=tenantAPIUrl, tenantUserApikey=pipelineParams['user_api_key'], tenantUserId=pipelineParams['user_id'], orderNumber=pipelineParams["order_number"]):
-            petstore_details = read_petstore_order(tenantApiUrl=tenantUrl, tenantUserId=pipelineParams['user_id'], tenantUserApikey=pipelineParams['user_api_key'], orderNumber=pipelineParams['order_number'], createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config")
+        status, resource_group_name, db_name = is_db_ready(tenantApiUrl=tenantAPIUrl, tenantUserApikey=pipelineParams['user_api_key'], tenantUserId=pipelineParams['user_id'], orderNumber=pipelineParams["order_number"])
+        LOGGER.info("IS DB READY: ", status, resource_group_name, db_name)
+        if status:
+            #petstore_details = read_petstore_order(tenantApiUrl=tenantUrl, tenantUserId=pipelineParams['user_id'], tenantUserApikey=pipelineParams['user_api_key'], orderNumber=pipelineParams['order_number'], createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config")
         
             LOGGER.info("DB Details")
             LOGGER.info("petstore_details")
             
-            if petstore_details and petstore_details['resource_group'] and petstore_details['db_name']: 
+            if resource_group_name and db_name: 
             
-                change_secure_transport_flag(resource_group_name=petstore_details['resource_group'], mysql_server_name=petstore_details['db_name'])
+                change_secure_transport_flag(resource_group_name=status, mysql_server_name=db_name)
                 
                 time.sleep(60)
                 
-                change_public_network_access(resource_group_name=petstore_details['resource_group'], mysql_server_name=petstore_details['db_name'])
+                change_public_network_access(resource_group_name=resource_group_name, mysql_server_name=db_name)
                 
                 time.sleep(60)
         else:

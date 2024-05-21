@@ -58,7 +58,8 @@ def main():
     try:
         LOGGER.info( f'Processing: URL: {tenantAPIUrl} - API Key: {pipelineParams["user_api_key"]} - Order Number: {pipelineParams["order_number"]} - User ID: {pipelineParams["user_id"]}' )
         status, resource_group_name, db_name = is_db_ready(tenantApiUrl=tenantAPIUrl, tenantUserApikey=pipelineParams['user_api_key'], tenantUserId=pipelineParams['user_id'], orderNumber=pipelineParams["order_number"])
-        LOGGER.info("IS DB READY: ", status, resource_group_name, db_name)
+        LOGGER.info(f"IS DB READY? Status: {status} - RG: {resource_group_name} - DB Name: {db_name}")
+    
         if status:
             #petstore_details = read_petstore_order(tenantApiUrl=tenantUrl, tenantUserId=pipelineParams['user_id'], tenantUserApikey=pipelineParams['user_api_key'], orderNumber=pipelineParams['order_number'], createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config")
         

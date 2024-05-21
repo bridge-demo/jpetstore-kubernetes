@@ -67,7 +67,7 @@ def main():
             
             if resource_group_name and db_name: 
             
-                change_secure_transport_flag(resource_group_name=status, mysql_server_name=db_name)
+                change_secure_transport_flag(resource_group_name=resource_group_name, mysql_server_name=db_name)
                 
                 time.sleep(60)
                 

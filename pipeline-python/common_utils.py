@@ -4,6 +4,8 @@ import subprocess
 import os
 import json
 import logging
+from jsonpath_ng.ext import parse
+
 
 def sanitazeTenantUrl(tenantUrl:str, urlType:str ="url"):
     """
@@ -99,6 +101,7 @@ def make_web_request(url="", payload={}, headers={}, requestMethod=requests.get,
 
         return None, False, f"Fail - {error} "
 
+
 def makeWebRequest(requestMethod=requests.get, logToIBM=False,  **kwargs ):
     
     try:
@@ -145,6 +148,7 @@ def validateJSON(jsonData):
 
 def get_logger():
     return logging
+
 
 LICENSES = [{
 			"License Name": "New BSD",
@@ -267,6 +271,18 @@ LICENSES = [{
 			"Status": "Allowed"
 		}
 	]
+
+
+def get_value_from_dict( dictData, jsonpath_pattern ):
+
+    if not dictData:
+        return None
+
+    expression = parse( jsonpath_pattern )
+    matches = [ match.value for match in expression.find(dictData) ]
+    if matches:
+        return matches if len(matches) > 1 else matches[0]
+    return None
 
 class DependencyLicenseTemplate:
     def __init__(self):

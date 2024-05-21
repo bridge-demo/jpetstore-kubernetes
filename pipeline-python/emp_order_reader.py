@@ -202,12 +202,17 @@ def get_order_details_for_service_chaining(tenant_user_id, tenant_system_user_ap
 
 def parse_petstore_order_details_for_service_chaining(jsonData):
     try:
+        service_instance_path_1 = '$.data.orderItems[0].services[:1].serviceInventoryId'
+        service_instance_path_2 = '$.data.orderItems[1].services[:1].serviceInventoryId'
+        service_instance_path_3 = '$.data.orderItems[2].services[:1].serviceInventoryId'
+        db_user_path = '$.data.orderItems[?(@.serviceOfferingName=~"Azure Database for MySQL - Flexible Server V2")].configInfo[?(@.configGroupCode=="Azurerm mysql flexible server dbdepl")].config[?(@.configId=="server_user")].values[0].value'
+        db_password_path = '$.data.orderItems[?(@.serviceOfferingName=~"Azure Database for MySQL - Flexible Server V2")].configInfo[?(@.configGroupCode=="Azurerm mysql flexible server dbdepl")].config[?(@.configId=="serverPassword")].values[0].value'
         data = {}
-        data["service_instance_id"] = jsonData["data"]["orderItems"][0]["services"][0]["serviceInventoryId"]
-        data["service_instance_id2"] = jsonData["data"]["orderItems"][1]["services"][0]["serviceInventoryId"]
-        data["service_instance_id3"] = jsonData["data"]["orderItems"][2]["services"][0]["serviceInventoryId"]
-        data["db_user"] = jsonData["data"]["orderItems"][1]["configInfo"][0]["config"][2]["values"][0]["value"]
-        data["db_pass"] = jsonData["data"]["orderItems"][1]["configInfo"][0]["config"][3]["values"][0]["value"]
+        data["service_instance_id"] = common_utils.get_value_from_dict(jsonData, service_instance_path_1)
+        data["service_instance_id2"] = common_utils.get_value_from_dict(jsonData, service_instance_path_2)
+        data["service_instance_id3"] = common_utils.get_value_from_dict(jsonData, service_instance_path_3)
+        data["db_user"] = common_utils.get_value_from_dict(jsonData, db_user_path)
+        data["db_pass"] = common_utils.get_value_from_dict(jsonData, db_password_path)
         
         print("parse_petstore_order_details_for_service_chaining --- >", data)
 

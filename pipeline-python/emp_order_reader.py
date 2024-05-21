@@ -301,7 +301,7 @@ def parse_service_chaining_details(jsonData, jsonData2):
 
     return {
         "tmp_kube_config": kubeconfig,
-        "fqdn": fqdn,
+        "fqdn": kubenetes_fqdn,
         "db_url": fqdn,
         "db_name": db_name,
         "resource_group": resource_group

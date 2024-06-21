@@ -347,7 +347,7 @@ def read_petstore_order( tenantApiUrl, tenantUserId, tenantUserApikey, orderNumb
         tenant_system_user_id=tenantUserId,
         tenant_system_user_api_key=tenantUserApikey,
         service_instance_id=orderDetails["service_instance_id"],
-        service_instance_id2=orderDetails["service_instance_id3"],
+        service_instance_id2=orderDetails["service_instance_id2"],
         tenant_api_url=tenantApiUrl
     )
 

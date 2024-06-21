@@ -1,9 +1,14 @@
 import mysql.connector
 from mysql.connector import errorcode
+from mysql.connector import MySQLConnection
 import os
-url = os.environ.get('mysqlUrl')
-user = os.environ.get('mysqlUser')
-pswd = os.environ.get('mysqlPass')
+#url = os.environ.get('mysql.url')
+#user = os.environ.get('mysql.username')
+#pswd = os.environ.get('mysql.password')
+url = "kphcmysqldb-8af551658561410f0956bb3060c68679.mysql.database.azure.com"
+user = "db_admin"
+pswd = "Passw0rd1!"
+
 # Obtain connection string information from the portal
 config = {
   'host': url,
@@ -11,11 +16,15 @@ config = {
   'password': pswd,
   'database':'mysql'
 }
+print(config)
 # Construct connection string
 try:
-   conn = mysql.connector.connect(**config)
+   conn = MySQLConnection(**config)
    print("Connection established")
-except mysql.connector.Error as err:
+   exit()
+except Exception as err:
+  print(err)
+  exit()
   if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
     print("Something is wrong with the user name or password")
   elif err.errno == errorcode.ER_BAD_DB_ERROR:
@@ -25,7 +34,7 @@ except mysql.connector.Error as err:
 else:
     cursor = conn.cursor()
 import codecs
-fd = codecs.open('/src/jpetstore-mysql-1-schema.sql', mode='r', encoding='utf-8-sig', errors='ignore')
+#fd = codecs.open('/src/jpetstore-mysql-1-schema.sql', mode='r', encoding='utf-8-sig', errors='ignore')
 operation = fd.read()
 fd.close()
 try:
@@ -40,7 +49,7 @@ try:
 except:
   print("###")
 
-fd = codecs.open('/src/jpetstore-mysql-2-dataload.sql', mode='r', encoding='utf-8-sig', errors='ignore')
+#fd = codecs.open('/src/jpetstore-mysql-2-dataload.sql', mode='r', encoding='utf-8-sig', errors='ignore')
 operation = fd.read()
 fd.close()
 try:

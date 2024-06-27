@@ -5,6 +5,7 @@ import requests
 import uuid
 import logging
 import hashlib
+import os
 
 from common_utils import make_web_request, sanitazeTenantUrl, LICENSES
 

@@ -105,7 +105,7 @@ class Secure:
             #payload["technicalserviceoverride"] = True
 
             payload = {
-                #"analysisDate": {date},
+                "analysisDate": str(datetime.today().strftime('%Y-%m-%d')) + "T12:00:17.332Z",
                 "hostname": "https://demo.jfrog.io",
                 "image_name": "petstore-order-api",
                 "license_scan_vulnerabilities": [
@@ -130,7 +130,7 @@ class Secure:
                 ],
                 "providerEngine": "jfrog-demo",
                 "provider_href": "",
-                #"release_name": "release-2024.05.29",
+                "release_name": "release-Muhammad",
                 "technical_service_name": "bridge-demo/petstore-orders-api",
                 "technicalserviceoverride": True
             }

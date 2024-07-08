@@ -107,7 +107,7 @@ class Secure:
                         "status": "Allowed"
                     }
                 ],
-                "providerEngine": "jfrog-demo",
+                "providerEngine": "JFrog",
                 "provider_href": "",
                 "release_name": "release-" + str(datetime.today().strftime('%Y-%m-%d')),
                 "technical_service_name": "bridge-demo/petstore-orders-api",

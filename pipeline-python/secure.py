@@ -5,6 +5,7 @@ import requests
 import uuid
 import logging
 import hashlib
+import os
 
 from common_utils import make_web_request, sanitazeTenantUrl, LICENSES
 
@@ -75,37 +76,19 @@ class Secure:
 
             date = datetime.utcnow().isoformat("T")+"Z"
             tenant_url = sanitazeTenantUrl(tenant_url)
-            #ENDPOINT = f"{tenant_url}dash/api/dev_secops/v3/technical-services/license-scan?scannedBy=licenseFinder&scannedTime={date}"
             ENDPOINT = f"{tenant_url}dash/api/licensescanmanager/v1/technical-services/license-scan"
-            scan = {"dependency_licenses": []}
 
-            # for _ in range(randint(1,2)):
-
-            #     license = DependencyLicenseTemplate()
-
-            #     licenseInfo = choice(LICENSES)
-
-            #     license.dependency_name = licenseInfo["Package Name"]
-            #     license.dependency_version = "v{0}.{1}.{2}".format(randint(0,16),randint(0,16),randint(0,16))
-            #     license.dependency_homepage = "https://www.github.com/{0}".format(license.dependency_name)
-            #     license.dependency_install_path = "/src/node_modules/{0}".format(license.dependency_name)
-            #     license.dependency_package_manager = "node"
-            #     license.license_name = licenseInfo['License Name']
-            #     license.license_link = "https://www.{0}.com/{1}".format(license.dependency_name,str(uuid.uuid4()))
-            #     license.status = choice( LICENSE_STATUS )
-            #     license.provider_href = "https://pypi.org/"
-            #     license.technical_service_name = self.technical_service_name
-            #     license.technicalserviceoverride = True
-
-            #     scan["dependency_licenses"].append( license.__dict__ )
-
-
-            # payload = scan
-            #payload["technical_service_name"] = self.technical_service_name
-            #payload["technicalserviceoverride"] = True
+            license = DependencyLicenseTemplate()
+            licenseInfo = choice(LICENSES)
+            license.dependency_name = licenseInfo["Package Name"]
+            license.license_link = "https://www.{0}.com/{1}".format(license.dependency_name,str(uuid.uuid4()))
+            license.license_name = licenseInfo["License Name"]
+            license.dependency_homepage = "https://www.github.com/{0}".format(license.dependency_name)
+            license.dependency_install_path = "/src/node_modules/{0}".format(license.dependency_name)
+            license.dependency_version = licenseInfo["Package Version"]
 
             payload = {
-                #"analysisDate": {date},
+                "analysisDate": str(datetime.today().strftime('%Y-%m-%d')) + "T12:00:17.332Z",
                 "hostname": "https://demo.jfrog.io",
                 "image_name": "petstore-order-api",
                 "license_scan_vulnerabilities": [
@@ -113,24 +96,20 @@ class Secure:
                         "component": "petstore-order-api",
                         "hostname": "https://demo.jfrog.io",
                         "isOpenSource": True,
-                        "license_link": "https://www.Xxhash.com/c666d138-b635-4143-9440-46fa97fefc87",
-                        "license_name": "Xxhash",
-                        "licensekey": "ab031223-3571-406e-9b67-4c1985b2d7ba",
-                        "package_homepage": "github.com/cespare/xxhash/v2",
-                        "package_install_path": "/src/node_modules/Xxhash",
+                        "license_link": license.license_link,
+                        "license_name": license.license_name,
+                        "package_homepage": license.dependency_homepage,
+                        "package_install_path": license.dependency_install_path,
                         "package_package_manager": "node",
                         "package_type": "",
-                        "package_version": "v2.1.2",
-                        "path": [
-                            "/src/node_modules/Xxhash"
-                        ],
+                        "package_version": license.dependency_version,
                         "repokey": "bridge-demo/petstore-orders-api",
                         "status": "Allowed"
                     }
                 ],
-                "providerEngine": "jfrog-demo",
+                "providerEngine": "JFrog",
                 "provider_href": "",
-                #"release_name": "release-2024.05.29",
+                "release_name": "release-" + str(datetime.today().strftime('%Y-%m-%d')),
                 "technical_service_name": "bridge-demo/petstore-orders-api",
                 "technicalserviceoverride": True
             }
@@ -366,6 +345,6 @@ if __name__ == "__main__":
     print(
         secure.publish_secure_licenses(
             tenant_url="https://mcmp-learn.multicloud-ibm.com",
-            secureToken=""
+            secureToken=os.getenv("LICENSE_SCAN_TOKEN")
         )
     )

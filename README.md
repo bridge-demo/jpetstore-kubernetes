@@ -98,6 +98,8 @@ You are now ready to use the UI to shop for a pet or query the store by sending 
 
    ![](readme_images/petstore.png)
 
+   
+
 ## Clean up:
 
 ```bash

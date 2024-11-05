@@ -6,6 +6,38 @@ import json
 import logging
 from jsonpath_ng.ext import parse
 
+LEARN_BRIDGE_AUTH_API = "/api/iam/v4/identity/token"
+
+def get_bearer_token(tenantUrl:str, apikey:str, subject:str):
+    """
+    tenantUrl: string
+        Example: http://mcmp-learn.multicloud-ibm.com
+
+    apikey: string -> 'xxxxxxx'
+    """
+    
+    auth_data = {
+        "apikey": apikey,
+        "subject": subject,
+    }
+    
+    auth_url = tenantUrl + LEARN_BRIDGE_AUTH_API
+
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    }
+
+    auth_response, _, _ = make_web_request(url=auth_url, payload=auth_data, headers=headers, requestMethod=requests.post)
+
+    if(auth_response == None):
+        return None
+    
+    auth_json_response = auth_response.json()
+    token_response = auth_json_response.get("token") if auth_json_response.get("token") != None else ''
+    
+    return token_response
+
 
 def sanitazeTenantUrl(tenantUrl:str, urlType:str ="url"):
     """

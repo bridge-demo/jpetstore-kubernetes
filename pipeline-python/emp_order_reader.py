@@ -153,6 +153,7 @@ def parse_service_instance_details( jsonData ):
     }
 
 def read_petstore_order( tenantApiUrl, tenantUserId, tenantUserApikey, orderNumber, createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config" ):
+    print("tenantApiUrl----",tenantApiUrl)
     tenantApiUrl = common_utils.sanitazeTenantUrl(tenantApiUrl, urlType="api")
     orderDetails = get_order_details(
         tenant_api_url=tenantApiUrl,

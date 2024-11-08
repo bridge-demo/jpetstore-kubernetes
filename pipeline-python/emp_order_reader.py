@@ -82,10 +82,14 @@ def get_petstore_service_instance_details( tenant_system_user_id, tenant_system_
     
     LOGGER.info("Reading service instace details")
     ENDPOINT = f"{tenant_api_url}v3/api/services/azure/{service_instance_id}"
+    bearerToken = common_utils.get_bearer_token(host=tenant_api_url, api_key=tenant_system_user_api_key, subject_id=tenant_system_user_id)
     headers = {
-        "username": tenant_system_user_id, 
-        "apikey": tenant_system_user_api_key
-    }
+            'Authorization': f"Bearer {bearerToken}",
+        }
+    # headers = {
+    #     "username": tenant_system_user_id, 
+    #     "apikey": tenant_system_user_api_key
+    # }
     response, isSuccessfulResponse, _  = common_utils.make_web_request( requestMethod=requests.get, url=ENDPOINT, headers=headers )
     timeOutError = response.status_code == 504
     if timeOutError:

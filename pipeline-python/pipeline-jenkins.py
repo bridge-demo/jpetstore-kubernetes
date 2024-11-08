@@ -79,7 +79,7 @@ def update_completed_order_status( tenantUrl:str, userID:str, userApiKey:str, or
     """
     ##If status file is not json valid create a new one and rename the existing one to .old
 
-    tenantUrl = sanitazeTenantUrl(tenantUrl, urlType='api')
+    tenantUrl = sanitazeTenantUrl(tenantUrl)
     endpointUrl = f"{tenantUrl}api/fulfillment/prov_posthook_response"
     headers = {
         "username": userID,

@@ -82,7 +82,7 @@ def get_petstore_service_instance_details( tenant_system_user_id, tenant_system_
     
     LOGGER.info("Reading service instace details")
     print("service id is ---",service_instance_id)
-    ENDPOINT = f"{tenant_api_url}v3/api/services/azure/{service_instance_id}"
+    ENDPOINT = f"{tenant_api_url}consume/v3/api/services/azure/{service_instance_id}"
     bearerToken = common_utils.get_bearer_token(host=tenant_api_url, api_key=tenant_system_user_api_key, subject_id=tenant_system_user_id)
     headers = {
             'Authorization': f"Bearer {bearerToken}",

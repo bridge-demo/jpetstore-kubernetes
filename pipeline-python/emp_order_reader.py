@@ -14,7 +14,7 @@ def get_order_details(tenant_user_id, tenant_system_user_api_key, order_number, 
     Ends the process if an error occurs
     """
     LOGGER.info("Reading order Details -- %s ", tenant_api_url)
-    ENDPOINT = f"{tenant_api_url}consume/v3/api/orders/{order_number}/detail"
+    ENDPOINT = f"{tenant_api_url}consume/v5/api/orders/{order_number}/detail"
     bearerToken = common_utils.get_bearer_token(host=tenant_api_url, api_key=tenant_system_user_api_key, subject_id=tenant_user_id)
     headers = {
             'Authorization': f"Bearer {bearerToken}",

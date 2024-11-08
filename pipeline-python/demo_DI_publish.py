@@ -292,7 +292,7 @@ def try_web_request( url, requestMethod=requests.get, LOGGER=logging.getLogger(_
 def update_post_provisioning_hook( tenantApiUrl, userID, apikey, orderID, fulfillmentID, status="Completed", endProcessIfFails=False ):
 
     tenantApiUrl = sanitazeTenantUrl( tenantApiUrl)
-    ENDPOINT = f"{tenantApiUrl}api/fulfillment/prov_posthook_response"
+    ENDPOINT = f"{tenantApiUrl}consume/api/fulfillment/prov_posthook_response"
 
     payload = {
         "orderNumber": orderID,

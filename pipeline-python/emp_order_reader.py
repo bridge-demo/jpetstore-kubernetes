@@ -14,7 +14,7 @@ def get_order_details(tenant_user_id, tenant_system_user_api_key, order_number, 
     Ends the process if an error occurs
     """
     LOGGER.info("Reading order Details -- %s ", tenant_api_url)
-    ENDPOINT = f"{tenant_api_url}/consume/v3/api/orders/{order_number}/detail"
+    ENDPOINT = f"{tenant_api_url}consume/v3/api/orders/{order_number}/detail"
     headers = {
         "username": tenant_user_id, 
         "apikey": tenant_system_user_api_key

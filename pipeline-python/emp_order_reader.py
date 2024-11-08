@@ -15,10 +15,10 @@ def get_order_details(tenant_user_id, tenant_system_user_api_key, order_number, 
     """
     LOGGER.info("Reading order Details -- %s ", tenant_api_url)
     ENDPOINT = f"{tenant_api_url}consume/v3/api/orders/{order_number}/detail"
+    bearerToken = common_utils.get_bearer_token(host=tenant_api_url, api_key=tenant_system_user_api_key, subject_id=tenant_user_id)
     headers = {
-        "username": tenant_user_id, 
-        "apikey": tenant_system_user_api_key
-    }
+            'Authorization': f"Bearer {bearerToken}",
+        }
     response, isSuccessfulResponse, _  = common_utils.make_web_request( requestMethod=requests.get, headers=headers, url=ENDPOINT )
     
     serverTimeout = response.status_code == 504

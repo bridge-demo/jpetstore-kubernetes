@@ -14,7 +14,7 @@ def get_order_details(tenant_user_id, tenant_system_user_api_key, order_number, 
     Ends the process if an error occurs
     """
     LOGGER.info("Reading order Details")
-    ENDPOINT = f"{tenant_api_url}v5/api/orders/{order_number}/detail"
+    ENDPOINT = f"{tenant_api_url}/consume/v3/api/orders/{order_number}/detail"
     headers = {
         "username": tenant_user_id, 
         "apikey": tenant_system_user_api_key
@@ -154,7 +154,7 @@ def parse_service_instance_details( jsonData ):
 
 def read_petstore_order( tenantApiUrl, tenantUserId, tenantUserApikey, orderNumber, createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config" ):
     print("tenantApiUrl----",tenantApiUrl)
-    tenantApiUrl = common_utils.sanitazeTenantUrl(tenantApiUrl, urlType="api")
+    tenantApiUrl = common_utils.sanitazeTenantUrl(tenantApiUrl)
     orderDetails = get_order_details(
         tenant_api_url=tenantApiUrl,
         tenant_system_user_api_key=tenantUserApikey,

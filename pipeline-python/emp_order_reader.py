@@ -58,6 +58,7 @@ def parse_petstore_order_details(jsonData):
     """
     try:
         data = {}
+        print("----json data is ----",jsonData)
         data["service_instance_id"] = jsonData["data"]["orderItems"][0]["services"][0]["serviceInventoryId"]
         
         #Get the database password

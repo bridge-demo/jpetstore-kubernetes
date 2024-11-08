@@ -303,11 +303,7 @@ def update_post_provisioning_hook( tenantApiUrl, userID, apikey, orderID, fulfil
         "additionalMessage": "",
         "forceUpdate": True
     }
-    headers = {
-        'username': userID,
-        'apikey': apikey,
-        'Content-Type': 'application/json'
-    }
+    
     bearerToken = get_bearer_token(host=tenantApiUrl, api_key=apikey, subject_id=userID)
     headers = {
             'Authorization': f"Bearer {bearerToken}",

@@ -112,7 +112,7 @@ def get_bearer_token(host=None, api_key=None, subject_id=None):
         "Content-Type": "application/json",
     }
 
-    auth_response, _ = make_web_request(url=auth_url, payload=auth_data, headers=headers, requestMethod=requests.post)
+    auth_response, _, _ = make_web_request(url=auth_url, payload=auth_data, headers=headers, requestMethod=requests.post)
 
     if(auth_response == None):
         return ''

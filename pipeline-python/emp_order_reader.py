@@ -42,7 +42,9 @@ def get_order_details(tenant_user_id, tenant_system_user_api_key, order_number, 
         LOGGER.error(f"Error: Expecting a json response from {ENDPOINT} and got:\n{response.text}")
         exit(1)
     data = response.json()
+    print("data is ------",data)
     details = parse_petstore_order_details( data )
+    print("details is ------",details)
     LOGGER.info("Done reading order Details")
     return details
 

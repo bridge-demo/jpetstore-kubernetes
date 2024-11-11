@@ -179,7 +179,9 @@ def read_petstore_order( tenantApiUrl, tenantUserId, tenantUserApikey, orderNumb
         tmp_file = open(kubeconfigFileName, "w")
         tmp_file.write(serviceDetails['tmp_kube_config'])
         tmp_file.close()
-
+    print("--orderDetails--",orderDetails)
+    print("inbetween")
+    print("--serviceDetails--",serviceDetails)
     return {
             "tmp_kube_config": serviceDetails['tmp_kube_config'],
             "fqdn": serviceDetails['fqdn'],

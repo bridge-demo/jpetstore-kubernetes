@@ -7,17 +7,18 @@ import build
 from datetime import datetime
 import uuid
 import logging
-
 from secure import Secure
 import deployMonitoring
 import build
 from testpetstore import Tester
 from deploy import Deploy
 from common_utils import *
+from emp_order_reader import read_petstore_order, is_db_ready
+from mysql_security_configurations import *
+import time
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger("Pipeline")
-
 STATE_FILENAME = "jpetstore-pipeline-status.json"
 
 def parser( validate_parameters = False ) -> dict:
@@ -47,13 +48,45 @@ def validate_parameters(parameters: dict) -> dict:
 
 
 def main():
+    
     parserValues = parser()
     pipelineParams = configure_pipeline_status( parserValues )
+    tenantUrl = sanitazeTenantUrl(pipelineParams['tenant_url'])
+    tenantAPIUrl = sanitazeTenantUrl(tenantUrl, urlType='api')
+    
+    
+    try:
+        LOGGER.info( f'Processing: URL: {tenantAPIUrl} - API Key: {pipelineParams["user_api_key"]} - Order Number: {pipelineParams["order_number"]} - User ID: {pipelineParams["user_id"]}' )
+        status, resource_group_name, db_name = is_db_ready(tenantApiUrl=tenantAPIUrl, tenantUserApikey=pipelineParams['user_api_key'], tenantUserId=pipelineParams['user_id'], orderNumber=pipelineParams["order_number"])
+        LOGGER.info(f"IS DB READY? Status: {status} - RG: {resource_group_name} - DB Name: {db_name}")
+    
+        if status:
+            #petstore_details = read_petstore_order(tenantApiUrl=tenantUrl, tenantUserId=pipelineParams['user_id'], tenantUserApikey=pipelineParams['user_api_key'], orderNumber=pipelineParams['order_number'], createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config")
+        
+            LOGGER.info("DB Details")
+            LOGGER.info("petstore_details")
+            
+            if resource_group_name and db_name: 
+            
+                change_secure_transport_flag(resource_group_name=resource_group_name, mysql_server_name=db_name)
+                
+                time.sleep(60)
+                
+                change_public_network_access(resource_group_name=resource_group_name, mysql_server_name=db_name)
+                
+                time.sleep(60)
+        else:
+            logging.info(
+            f"""The Services are not ready yet!!  """)
+            
+    except Exception as error:
+        logging.error(
+            f"""Error:  {error}  """)
+        
     LOGGER.info( json.dumps( pipelineParams, indent=3 ) )
     buildUrl =  os.getenv( "BUILD_URL", "http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console" )
 
-    tenantUrl = sanitazeTenantUrl(pipelineParams['tenant_url'])
-
+        
     error = update_completed_order_status( 
         tenantUrl=tenantUrl, 
         userID=pipelineParams['user_id'], 
@@ -66,20 +99,21 @@ def main():
         LOGGER.error("Fail to update order status")
 
     petstore_pipeline(params=pipelineParams)
-
-
-
-
-
-
+        
+        
+   
 def update_completed_order_status( tenantUrl:str, userID:str, userApiKey:str, orderNumber: str, fulfillmentId:str, buildUrl:str ):
     """
     This function will return an error string only in case of failure
     """
+    
+    LOGGER.info("Update_completed_order_status")
     ##If status file is not json valid create a new one and rename the existing one to .old
 
     tenantUrl = sanitazeTenantUrl(tenantUrl, urlType='api')
     endpointUrl = f"{tenantUrl}api/fulfillment/prov_posthook_response"
+    bearer_token = get_bearer_token(tenantUrl=tenantUrl, apikey=userApiKey, subject=userID)
+    print('Bearer: ', bearer_token)
     headers = {
         "username": userID,
         "apikey": userApiKey
@@ -103,6 +137,8 @@ def update_completed_order_status( tenantUrl:str, userID:str, userApiKey:str, or
 
 
 def petstore_pipeline(  params: dict  ):
+    
+    
 
     fullWebImageName = f"{params['docker_user']}/jpetstore-web:latest"
     fullDBImageName = f"{params['docker_user']}/jpetstore-db:latest"

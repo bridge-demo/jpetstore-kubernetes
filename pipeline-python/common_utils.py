@@ -4,6 +4,40 @@ import subprocess
 import os
 import json
 import logging
+from jsonpath_ng.ext import parse
+
+LEARN_BRIDGE_AUTH_API = "/api/iam/v4/identity/token"
+
+def get_bearer_token(tenantUrl:str, apikey:str, subject:str):
+    """
+    tenantUrl: string
+        Example: http://mcmp-learn.multicloud-ibm.com
+
+    apikey: string -> 'xxxxxxx'
+    """
+    
+    auth_data = {
+        "apikey": apikey,
+        "subject": subject,
+    }
+    
+    auth_url = tenantUrl + LEARN_BRIDGE_AUTH_API
+
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    }
+
+    auth_response, _, _ = make_web_request(url=auth_url, payload=auth_data, headers=headers, requestMethod=requests.post)
+
+    if(auth_response == None):
+        return None
+    
+    auth_json_response = auth_response.json()
+    token_response = auth_json_response.get("token") if auth_json_response.get("token") != None else ''
+    
+    return token_response
+
 
 def sanitazeTenantUrl(tenantUrl:str, urlType:str ="url"):
     """
@@ -55,6 +89,15 @@ def make_web_request(url="", payload={}, headers={}, requestMethod=requests.get,
         # TODO - in case of a gateway time out error 504 (statuscode) retry
         response = requestMethod(url=url, json=payload, headers=headers, params=params)
         if response.status_code >= 200 and response.status_code < 300:
+            LOGGER.info(
+                f"""Success 200 response from {url}
+                headers: {headers}
+                payload: {payload}
+                method:  {requestMethod.__name__}
+                response:{response.text}
+                response status code: {response.status_code}
+                """
+            )
             return response, True, ""
 
         LOGGER.warn(
@@ -89,6 +132,7 @@ def make_web_request(url="", payload={}, headers={}, requestMethod=requests.get,
         )
 
         return None, False, f"Fail - {error} "
+
 
 def makeWebRequest(requestMethod=requests.get, logToIBM=False,  **kwargs ):
     
@@ -136,6 +180,7 @@ def validateJSON(jsonData):
 
 def get_logger():
     return logging
+
 
 LICENSES = [{
 			"License Name": "New BSD",
@@ -258,6 +303,18 @@ LICENSES = [{
 			"Status": "Allowed"
 		}
 	]
+
+
+def get_value_from_dict( dictData, jsonpath_pattern ):
+
+    if not dictData:
+        return None
+
+    expression = parse( jsonpath_pattern )
+    matches = [ match.value for match in expression.find(dictData) ]
+    if matches:
+        return matches if len(matches) > 1 else matches[0]
+    return None
 
 class DependencyLicenseTemplate:
     def __init__(self):

@@ -49,6 +49,9 @@ class Deploy:
             orderNumber=orderNumber,
             createKubeconfigFile=True
         )
+        
+        LOGGER.info("Deploy - Petstore Details --- > ", petstore_details)
+        
         startTime = datetime.datetime.now()
         try:
             self.deploy_petstore_helmchart(

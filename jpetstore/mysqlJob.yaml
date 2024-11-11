@@ -25,5 +25,5 @@ spec:
               secretKeyRef:
                 name: mysql-creds
                 key: mysql.password
-      restartPolicy: Never
+      restartPolicy: OnFailure
   backoffLimit: 4

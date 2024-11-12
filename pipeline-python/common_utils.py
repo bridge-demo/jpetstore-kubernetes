@@ -6,7 +6,7 @@ import json
 import logging
 from jsonpath_ng.ext import parse
 
-LEARN_BRIDGE_AUTH_API = "/api/iam/v4/identity/token"
+LEARN_BRIDGE_AUTH_API = "api/iam/v4/identity/token"
 
 def get_bearer_token(tenantUrl:str, apikey:str, subject:str):
     """

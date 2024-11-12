@@ -387,11 +387,13 @@ def read_petstore_order( tenantApiUrl, tenantUserId, tenantUserApikey, orderNumb
 def is_db_ready(tenantApiUrl, tenantUserId, tenantUserApikey, orderNumber):
     order_details = get_order_details_for_service_chaining(tenant_api_url=tenantApiUrl, tenant_user_id=tenantUserId, tenant_system_user_api_key=tenantUserApikey, order_number=orderNumber)
     print(order_details["service_instance_id"])
+    tenantApiUrl = common_utils.sanitazeTenantUrl(tenantApiUrl)
     if order_details and order_details["service_instance_id"] and order_details["service_instance_id2"]:
         LOGGER.info("Reading service instance details --- ")
-        ENDPOINT = f'{tenantApiUrl}v3/api/services/azure/{order_details["service_instance_id"]}'
-        ENDPOINT2 = f'{tenantApiUrl}v3/api/services/azure/{order_details["service_instance_id2"]}'
-        ENDPOINT3 = f'{tenantApiUrl}v3/api/services/azure/{order_details["service_instance_id3"]}'
+        ENDPOINT = f'{tenantApiUrl}consume/v3/api/services/azure/{order_details["service_instance_id"]}'
+        ENDPOINT2 = f'{tenantApiUrl}consume/v3/api/services/azure/{order_details["service_instance_id2"]}'
+        ENDPOINT3 = f'{tenantApiUrl}consume/v3/api/services/azure/{order_details["service_instance_id3"]}'
+        bearerToken = common_utils.get_bearer_token(tenantUrl=tenantApiUrl, apikey=tenantUserApikey, subject=tenantUserId)
         resource_type_path = '$.resources[0].resourceType'
         status_path = '$.resources[0].status'
         resource_group_name_path = '$.resources[0].templateOutputProperties[?(@.name == "Resource Group Name")].value'
@@ -399,8 +401,7 @@ def is_db_ready(tenantApiUrl, tenantUserId, tenantUserApikey, orderNumber):
         resource_group_name = ''
         db_name = ''
         headers = {
-            "username": tenantUserId, 
-            "apikey": tenantUserApikey
+            'Authorization': f"Bearer {bearerToken}",
         }
 
         response, isSuccessfulResponse, _  = common_utils.make_web_request(requestMethod=requests.get, url=ENDPOINT, headers=headers)

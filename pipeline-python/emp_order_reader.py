@@ -405,7 +405,7 @@ def is_db_ready(tenantApiUrl, tenantUserId, tenantUserApikey, orderNumber):
         headers = {
             'Authorization': f"Bearer {bearerToken}",
         }
-
+        
         response, isSuccessfulResponse, _  = common_utils.make_web_request(requestMethod=requests.get, url=ENDPOINT, headers=headers)
         response2, isSuccessfulResponse2, _ = common_utils.make_web_request(requestMethod=requests.get, url=ENDPOINT2, headers=headers)
         response3, isSuccessfulResponse3, _ = common_utils.make_web_request(requestMethod=requests.get, url=ENDPOINT3, headers=headers)

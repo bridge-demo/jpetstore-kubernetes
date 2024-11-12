@@ -99,10 +99,10 @@ def make_web_request(url="", payload={}, headers={}, requestMethod=requests.get,
                 """
             )
             return response, True, ""
-        # LOGGER.info(response.text)
-        # LOGGER.info(response.status_code)
-        # LOGGER.info(payload)
-        # LOGGER.info(headers)
+        LOGGER.info(response.text)
+        LOGGER.info(response.status_code)
+        LOGGER.info(payload)
+        LOGGER.info(headers)
         LOGGER.warn(
             f"""Non 200 response from {url}
             headers: {headers}

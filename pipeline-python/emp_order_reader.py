@@ -243,11 +243,12 @@ def parse_petstore_order_details_for_service_chaining(jsonData):
 def get_petstore_service_chaining_details(tenant_system_user_id, tenant_system_user_api_key, service_instance_id, service_instance_id2, tenant_api_url):
 
     LOGGER.info("Reading service instance details ----------")
-    ENDPOINT = f"{tenant_api_url}v3/api/services/azure/{service_instance_id}"
-    ENDPOINT2 = f"{tenant_api_url}v3/api/services/azure/{service_instance_id2}"
+    tenant_api_url = common_utils.sanitazeTenantUrl(tenant_api_url)
+    ENDPOINT = f"{tenant_api_url}consume/v3/api/services/azure/{service_instance_id}"
+    ENDPOINT2 = f"{tenant_api_url}consume/v3/api/services/azure/{service_instance_id2}"
+    bearerToken = common_utils.get_bearer_token(tenantUrl=tenant_api_url, apikey=tenant_system_user_api_key, subject=tenant_system_user_id)
     headers = {
-        "username": tenant_system_user_id, 
-        "apikey": tenant_system_user_api_key
+       'Authorization': f"Bearer {bearerToken}",
     }
 
     response, isSuccessfulResponse, _  = common_utils.make_web_request(requestMethod=requests.get, url=ENDPOINT, headers=headers)

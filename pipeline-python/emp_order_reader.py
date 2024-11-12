@@ -168,10 +168,10 @@ def get_order_details_for_service_chaining(tenant_user_id, tenant_system_user_ap
     Ends the process if an error occurs
     """
     LOGGER.info("Reading order Details---------")
-    LOGGER.info("fetch bearer token ---  ")
+    # LOGGER.info("fetch bearer token ---  ")
     # ENDPOINT = f"{tenant_api_url}v5/api/orders/{order_number}/detail"
     
-    LOGGER.info("fetch bearer token %s",tenant_api_url )
+    # LOGGER.info("fetch bearer token %s",tenant_api_url )
     tenantApiUrl = common_utils.sanitazeTenantUrl(tenant_api_url)
     bearerToken = common_utils.get_bearer_token(tenantUrl=tenantApiUrl, apikey=tenant_system_user_api_key, subject=tenant_user_id)
     # tenantApiUrl = common_utils.sanitazeTenantUrl(tenant_api_url)
@@ -242,7 +242,7 @@ def parse_petstore_order_details_for_service_chaining(jsonData):
 
 def get_petstore_service_chaining_details(tenant_system_user_id, tenant_system_user_api_key, service_instance_id, service_instance_id2, tenant_api_url):
 
-    LOGGER.info("Reading service instance details")
+    LOGGER.info("Reading service instance details ----------")
     ENDPOINT = f"{tenant_api_url}v3/api/services/azure/{service_instance_id}"
     ENDPOINT2 = f"{tenant_api_url}v3/api/services/azure/{service_instance_id2}"
     headers = {
@@ -388,7 +388,7 @@ def is_db_ready(tenantApiUrl, tenantUserId, tenantUserApikey, orderNumber):
     order_details = get_order_details_for_service_chaining(tenant_api_url=tenantApiUrl, tenant_user_id=tenantUserId, tenant_system_user_api_key=tenantUserApikey, order_number=orderNumber)
     print(order_details["service_instance_id"])
     if order_details and order_details["service_instance_id"] and order_details["service_instance_id2"]:
-        LOGGER.info("Reading service instance details")
+        LOGGER.info("Reading service instance details --- ")
         ENDPOINT = f'{tenantApiUrl}v3/api/services/azure/{order_details["service_instance_id"]}'
         ENDPOINT2 = f'{tenantApiUrl}v3/api/services/azure/{order_details["service_instance_id2"]}'
         ENDPOINT3 = f'{tenantApiUrl}v3/api/services/azure/{order_details["service_instance_id3"]}'

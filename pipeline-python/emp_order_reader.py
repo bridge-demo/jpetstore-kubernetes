@@ -334,7 +334,7 @@ def package_all_details(tenant_system_user_id, tenant_system_user_api_key, order
 
 
 def read_petstore_order( tenantApiUrl, tenantUserId, tenantUserApikey, orderNumber, createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config" ):
-    tenantApiUrl = common_utils.sanitazeTenantUrl(tenantApiUrl, urlType="api")
+    tenantApiUrl = common_utils.sanitazeTenantUrl(tenantApiUrl)
     # orderDetails = get_order_details(
     #    tenant_api_url=tenantApiUrl,
     #    tenant_system_user_api_key=tenantUserApikey,

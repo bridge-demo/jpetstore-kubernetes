@@ -168,6 +168,7 @@ def get_order_details_for_service_chaining(tenant_user_id, tenant_system_user_ap
     Ends the process if an error occurs
     """
     LOGGER.info("Reading order Details---------")
+    print("fetch bearer token ---  ")
     # ENDPOINT = f"{tenant_api_url}v5/api/orders/{order_number}/detail"
     ENDPOINT = f"{tenant_api_url}consume/v5/api/orders/{order_number}/detail"
     print("fetch bearer token")

@@ -17,8 +17,8 @@ def get_bearer_token(tenantUrl:str, apikey:str, subject:str):
     """
     
     auth_data = {
-        "apikey": apikey,
-        "subject": subject,
+        "Apikey": apikey,
+        "Username": subject,
     }
     
     auth_url = tenantUrl + LEARN_BRIDGE_AUTH_API

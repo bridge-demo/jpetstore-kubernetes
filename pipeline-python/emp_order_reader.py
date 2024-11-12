@@ -170,9 +170,11 @@ def get_order_details_for_service_chaining(tenant_user_id, tenant_system_user_ap
     LOGGER.info("Reading order Details---------")
     LOGGER.info("fetch bearer token ---  ")
     # ENDPOINT = f"{tenant_api_url}v5/api/orders/{order_number}/detail"
-    ENDPOINT = f"{tenant_api_url}consume/v5/api/orders/{order_number}/detail"
+    
     LOGGER.info("fetch bearer token %s",tenant_api_url )
     bearerToken = common_utils.get_bearer_token(tenantUrl=tenant_api_url, apikey=tenant_system_user_api_key, subject=tenant_user_id)
+    tenantApiUrl = common_utils.sanitazeTenantUrl(tenant_api_url)
+    ENDPOINT = f"{tenant_api_url}consume/v5/api/orders/{order_number}/detail"
     headers = {
         # "username": tenant_user_id, 
         # "apikey": tenant_system_user_api_key

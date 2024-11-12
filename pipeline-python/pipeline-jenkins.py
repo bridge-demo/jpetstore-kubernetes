@@ -110,13 +110,12 @@ def update_completed_order_status( tenantUrl:str, userID:str, userApiKey:str, or
     LOGGER.info("Update_completed_order_status")
     ##If status file is not json valid create a new one and rename the existing one to .old
 
-    tenantUrl = sanitazeTenantUrl(tenantUrl, urlType='api')
-    endpointUrl = f"{tenantUrl}api/fulfillment/prov_posthook_response"
+    tenantUrl = sanitazeTenantUrl(tenantUrl)
+    endpointUrl = f"{tenantUrl}consume/api/fulfillment/prov_posthook_response"
     bearer_token = get_bearer_token(tenantUrl=tenantUrl, apikey=userApiKey, subject=userID)
     print('Bearer: ', bearer_token)
     headers = {
-        "username": userID,
-        "apikey": userApiKey
+       'Authorization': f"Bearer {bearer_token}",
     }
 
     payload = {

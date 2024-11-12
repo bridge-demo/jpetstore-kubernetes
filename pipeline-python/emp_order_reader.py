@@ -390,10 +390,11 @@ def is_db_ready(tenantApiUrl, tenantUserId, tenantUserApikey, orderNumber):
     
     if order_details and order_details["service_instance_id"] and order_details["service_instance_id2"]:
         LOGGER.info("Reading service instance details --- ")
+        tenantApiUrl = common_utils.sanitazeTenantUrl(tenantApiUrl)
         ENDPOINT = f'{tenantApiUrl}consume/v3/api/services/azure/{order_details["service_instance_id"]}'
         ENDPOINT2 = f'{tenantApiUrl}consume/v3/api/services/azure/{order_details["service_instance_id2"]}'
         ENDPOINT3 = f'{tenantApiUrl}consume/v3/api/services/azure/{order_details["service_instance_id3"]}'
-        tenantApiUrl = common_utils.sanitazeTenantUrl(tenantApiUrl)
+        
         bearerToken = common_utils.get_bearer_token(tenantUrl=tenantApiUrl, apikey=tenantUserApikey, subject=tenantUserId)
         resource_type_path = '$.resources[0].resourceType'
         status_path = '$.resources[0].status'

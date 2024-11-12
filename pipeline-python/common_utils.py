@@ -22,7 +22,7 @@ def get_bearer_token(tenantUrl:str, apikey:str, subject:str):
     }
     
     auth_url = tenantUrl + LEARN_BRIDGE_AUTH_API
-    LOGGER.info("auth_url ---- %s",auth_url)
+    # LOGGER.info("auth_url ---- %s",auth_url)
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
@@ -99,10 +99,10 @@ def make_web_request(url="", payload={}, headers={}, requestMethod=requests.get,
                 """
             )
             return response, True, ""
-        LOGGER.info(response.text)
-        LOGGER.info(response.status_code)
-        LOGGER.info(payload)
-        LOGGER.info(headers)
+        # LOGGER.info(response.text)
+        # LOGGER.info(response.status_code)
+        # LOGGER.info(payload)
+        # LOGGER.info(headers)
         LOGGER.warn(
             f"""Non 200 response from {url}
             headers: {headers}

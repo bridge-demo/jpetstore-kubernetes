@@ -22,7 +22,7 @@ def get_bearer_token(tenantUrl:str, apikey:str, subject:str):
     }
     
     auth_url = tenantUrl + LEARN_BRIDGE_AUTH_API
-    logging.Logger.info("auth_url ---- ",auth_url)
+    LOGGER.info("auth_url ---- %s",auth_url)
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",

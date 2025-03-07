@@ -5,7 +5,7 @@ import os
 #url = os.environ.get('mysql.url')
 #user = os.environ.get('mysql.username')
 #pswd = os.environ.get('mysql.password')
-url = "kphcmysqldb-8af551658561410f0956bb3060c68679.mysql.database.azure.com"
+url = "mysqldb-45573c988f669ce564cd638aec565c29.mysql.database.azure.com"
 user = "db_admin"
 pswd = "Passw0rd1!"
 

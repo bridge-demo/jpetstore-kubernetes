@@ -62,9 +62,26 @@ def main():
     
         if status:
             #petstore_details = read_petstore_order(tenantApiUrl=tenantUrl, tenantUserId=pipelineParams['user_id'], tenantUserApikey=pipelineParams['user_api_key'], orderNumber=pipelineParams['order_number'], createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config")
-        
+
             LOGGER.info("DB Details")
             LOGGER.info("petstore_details")
+
+            LOGGER.info( json.dumps( pipelineParams, indent=3 ) )
+            buildUrl =  os.getenv( "BUILD_URL", "http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console" )
+
+                
+            error = update_completed_order_status( 
+                tenantUrl=tenantUrl, 
+                userID=pipelineParams['user_id'], 
+                userApiKey=pipelineParams['user_api_key'], 
+                orderNumber=pipelineParams["order_number"],   
+                fulfillmentId=pipelineParams["fulfillment_id"],
+                buildUrl=buildUrl
+            )
+            if error:
+                LOGGER.error("Fail to update order status")
+
+            petstore_pipeline(params=pipelineParams)
             
             if resource_group_name and db_name: 
             
@@ -82,23 +99,6 @@ def main():
     except Exception as error:
         logging.error(
             f"""Error:  {error}  """)
-        
-    LOGGER.info( json.dumps( pipelineParams, indent=3 ) )
-    buildUrl =  os.getenv( "BUILD_URL", "http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console" )
-
-        
-    error = update_completed_order_status( 
-        tenantUrl=tenantUrl, 
-        userID=pipelineParams['user_id'], 
-        userApiKey=pipelineParams['user_api_key'], 
-        orderNumber=pipelineParams["order_number"],   
-        fulfillmentId=pipelineParams["fulfillment_id"],
-        buildUrl=buildUrl
-    )
-    if error:
-        LOGGER.error("Fail to update order status")
-
-    petstore_pipeline(params=pipelineParams)
         
         
    

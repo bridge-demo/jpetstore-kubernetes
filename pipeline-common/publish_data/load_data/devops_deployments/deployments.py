@@ -32,7 +32,12 @@ def post_deployment_data(tenant_url, bearer_token):
             if DEPLOY_TOKEN != ""
             else tokens.get_token("DEPLOY", tenant_url, bearer_token, TOKEN_API).token
         )
-        ENDPOINT = DEPLOYMENT_URL_TEMPLATE.format(tenant_url)
+        #ENDPOINT = DEPLOYMENT_URL_TEMPLATE.format(tenant_url)
+        applicationName = "petstore"
+        technicalService = "bridge-demo/petstore-ui"
+        tool = "Jenkins"
+
+        ENDPOINT = f"{tenant_url}/application/{applicationName}/technical-services/{technicalService}/tool/{tool}/deployments"
 
         body = DeploymentTemplate()
 

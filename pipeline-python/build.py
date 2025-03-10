@@ -35,7 +35,12 @@ class Builder:
         ##Make sure you sanitize the tenant url as the fist step
 
         tenantUrl = sanitazeTenantUrl(tenantUrl)
-        endpointUrl = f"{tenantUrl}dash/api/build/v3/technical-services/builds"
+        #endpointUrl = f"{tenantUrl}dash/api/build/v3/technical-services/builds"
+        applicationName = "petstore"
+        technicalServiceName = self.technical_service_name
+        toolName = self.build_engine
+
+        endpointUrl = f"{tenantUrl}/application/{applicationName}/technical-services/{technicalServiceName}/tool/{toolName}/builds"
 
         payload = self.__dict__
 

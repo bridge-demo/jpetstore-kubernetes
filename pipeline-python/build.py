@@ -36,7 +36,7 @@ class Builder:
 
         tenantUrl = sanitazeTenantUrl(tenantUrl)
         #endpointUrl = f"{tenantUrl}dash/api/build/v3/technical-services/builds"
-        applicationName = "Test-Demo-4"
+        applicationName = "petstore"
         technicalServiceName = "RT_petstore_on_aks_jenkins"
         toolName = "Test-Demo"
 

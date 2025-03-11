@@ -130,7 +130,7 @@ class Deploy:
         technicalService = self.technical_service_name
         tool = self.tool
 
-        endpointUrl = f"{tenantUrl}/application/{applicationName}/technical-services/{technicalService}/tool/{tool}/deployments"
+        endpointUrl = f"{tenantUrl}application/{applicationName}/technical-services/{technicalService}/tool/{tool}/deployments"
 
         payload = self.__dict__
 

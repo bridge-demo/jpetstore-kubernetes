@@ -60,7 +60,7 @@ class Tester:
         applicationName = "petstore"
         toolName = "JFrog"
 
-        endpoint = f"{tenantUrl}/application/{applicationName}/technical-services/{technicalServiceName}/tool/{toolName}/tests/{runId}/status"
+        endpoint = f"{tenantUrl}application/{applicationName}/technical-services/{technicalServiceName}/tool/{toolName}/tests/{runId}/status"
 
         params = {
             "technicalServiceName": technicalServiceName,

@@ -40,7 +40,7 @@ class Builder:
         technicalServiceName = self.technical_service_name
         toolName = self.build_engine
 
-        endpointUrl = f"{tenantUrl}/application/{applicationName}/technical-services/{technicalServiceName}/tool/{toolName}/builds"
+        endpointUrl = f"{tenantUrl}application/{applicationName}/technical-services/{technicalServiceName}/tool/{toolName}/builds"
 
         payload = self.__dict__
 

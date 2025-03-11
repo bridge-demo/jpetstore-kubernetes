@@ -26,8 +26,8 @@ class Builder:
         self.event_type = "push"
         self.pull_request_number = pullRequestNumber
         self.repo_url = repoUrl
-        self.technical_service_name = tecnicalServiceName
-        self.technical_service_override = True
+        #self.technical_service_name = tecnicalServiceName
+        #self.technical_service_override = True
         self.href = os.getenv("BUILD_URL", buildUrl)
 
 
@@ -37,7 +37,7 @@ class Builder:
         tenantUrl = sanitazeTenantUrl(tenantUrl)
         #endpointUrl = f"{tenantUrl}dash/api/build/v3/technical-services/builds"
         applicationName = "petstore"
-        technicalServiceName = self.technical_service_name
+        technicalServiceName = "RT_petstore_on_aks_jenkins"
         toolName = "Jenkins"
 
         endpointUrl = f"{tenantUrl}dash/api/build/v3/application/{applicationName}/technical-services/{technicalServiceName}/tool/{toolName}/builds"

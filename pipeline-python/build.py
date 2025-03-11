@@ -38,7 +38,7 @@ class Builder:
         #endpointUrl = f"{tenantUrl}dash/api/build/v3/technical-services/builds"
         applicationName = "petstore"
         technicalServiceName = "RT_petstore_on_aks_jenkins"
-        toolName = "Jenkins"
+        toolName = "Tool-Demo"
 
         endpointUrl = f"{tenantUrl}dash/api/build/v3/application/{applicationName}/technical-services/{technicalServiceName}/tool/{toolName}/builds"
 

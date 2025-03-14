@@ -52,15 +52,15 @@ class Tester:
                 "status": self.status
             }
 
-    def publish_test( self, tenantUrl, testToken,  technicalServiceName="RT_petstore_on_aks_jenkins", testEngine="ant", bugs=randint(0,7), codeCoverage=randint(30,100), codeSmells=randint(0,8), hostName="13.82.103.214:8080", env="production",   releaseName=f"release-2023.{time.strftime('%m.%d')}", skipped=0,   ):
+    def publish_test( self, tenantUrl, testToken,  technicalServiceName="RT_petstore_on_aks_jenkins", testEngine="ant", bugs=randint(0,7), codeCoverage=randint(30,100), codeSmells=randint(0,8), hostName="13.82.103.214:8080", env="production",   releaseName=f'release-{time.strftime("%Y")}-{time.strftime("%m")}-{time.strftime("%d")}', skipped=0,   ):
       
         runId = str(uuid.uuid4())
         tenantUrl = sanitazeTenantUrl(tenantUrl)
-        #endpoint = f"{tenantUrl}dash/api/test/v3/technical-services/tests/run/{runId}/status"
-        applicationName = "petstore"
-        toolName = "JFrog"
+        endpoint = f"{tenantUrl}dash/api/test/v3/technical-services/tests/run/{runId}/status"
+        # applicationName = "petstore"
+        # toolName = "JFrog"
 
-        endpoint = f"{tenantUrl}application/{applicationName}/technical-services/{technicalServiceName}/tool/{toolName}/tests/{runId}/status"
+        # endpoint = f"{tenantUrl}application/{applicationName}/technical-services/{technicalServiceName}/tool/{toolName}/tests/{runId}/status"
 
         params = {
             "technicalServiceName": technicalServiceName,

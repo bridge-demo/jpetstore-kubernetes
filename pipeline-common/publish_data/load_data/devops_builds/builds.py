@@ -29,13 +29,13 @@ def post_build_data(tenant_url, bearer_token):
         DEVOPS_BUILD_TOKEN = (
             BUILD_TOKEN if BUILD_TOKEN != "" else tokens.get_token("BUILD", tenant_url, bearer_token, TOKEN_API).token
         )
-        #ENDPOINT = BUILD_URL_TEMPLATE.format(tenant_url)
+        ENDPOINT = BUILD_URL_TEMPLATE.format(tenant_url)
 
-        applicationName = "petstore"
-        technicalServiceName = "petstore_sample_data"
-        toolName = "JFrog"
+        # applicationName = "petstore"
+        # technicalServiceName = "petstore_sample_data"
+        # toolName = "JFrog"
 
-        ENDPOINT = f"{tenant_url}/application/{applicationName}/technical-services/{technicalServiceName}/tool/{toolName}/builds"
+        # ENDPOINT = f"{tenant_url}/application/{applicationName}/technical-services/{technicalServiceName}/tool/{toolName}/builds"
 
 
         body = BuildTemplate()

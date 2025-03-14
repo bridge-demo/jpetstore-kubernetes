@@ -32,12 +32,12 @@ def post_deployment_data(tenant_url, bearer_token):
             if DEPLOY_TOKEN != ""
             else tokens.get_token("DEPLOY", tenant_url, bearer_token, TOKEN_API).token
         )
-        #ENDPOINT = DEPLOYMENT_URL_TEMPLATE.format(tenant_url)
-        applicationName = "petstore"
-        technicalService = "bridge-demo/petstore-ui"
-        tool = "Jenkins"
+        ENDPOINT = DEPLOYMENT_URL_TEMPLATE.format(tenant_url)
+        # applicationName = "petstore"
+        # technicalService = "bridge-demo/petstore-ui"
+        # tool = "Jenkins"
 
-        ENDPOINT = f"{tenant_url}/application/{applicationName}/technical-services/{technicalService}/tool/{tool}/deployments"
+        # ENDPOINT = f"{tenant_url}/application/{applicationName}/technical-services/{technicalService}/tool/{tool}/deployments"
 
         body = DeploymentTemplate()
 
@@ -54,7 +54,7 @@ def post_deployment_data(tenant_url, bearer_token):
         body.technicalserviceoverride = True
         body.endpoint_hostname = DEPLOYMENT_HOSTNAME
         body.endpoint_technical_service_id = DEPLOYMENT_SERVICE_ID
-        body.release = f'release-2023-{time.strftime("%w")}'
+        body.release = f'release-{time.strftime("%Y")}-{time.strftime("%m")}-{time.strftime("%d")}'
         body.environment = "production"
         body.isproduction = True
         headers = {

@@ -29,7 +29,7 @@ class Deploy:
         self.technicalserviceoverride = True
         self.status = status
         self.tool = "Jenkins"
-        self.release = f'release-2023.{time.strftime("%Y.%m.%d")}'
+        self.release = f'release-{time.strftime("%Y")}-{time.strftime("%m")}-{time.strftime("%d")}'
         self.environment = environment
         self.isproduction = isProduction
 
@@ -124,13 +124,14 @@ class Deploy:
 
     def post_data_into_tenant( self, deployToken: str, tenantUrl:str,  ):
         ##Make sure you sanitize the tenant url as the fist step
-        #endpointUrl = f"{tenantUrl}dash/api/deployments/v4/technical-services/deployments"
         tenantUrl = sanitazeTenantUrl(tenantUrl)
-        applicationName = "petstore"
-        technicalService = self.technical_service_name
-        tool = self.tool
+        endpointUrl = f"{tenantUrl}dash/api/deployments/v4/technical-services/deployments"
+        
+        # applicationName = "petstore"
+        # technicalService = self.technical_service_name
+        # tool = self.tool
 
-        endpointUrl = f"{tenantUrl}application/{applicationName}/technical-services/{technicalService}/tool/{tool}/deployments"
+        # endpointUrl = f"{tenantUrl}application/{applicationName}/technical-services/{technicalService}/tool/{tool}/deployments"
 
         payload = self.__dict__
 

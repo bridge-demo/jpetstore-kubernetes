@@ -13,7 +13,7 @@ class Builder:
     def __init__(self,  tecnicalServiceName, buildId=uuid.uuid4().__str__(), buildEngine="Jenkins", commitNumber="606b16c15ea6ade03fe70dc9a88c306a54be7a14", buildUrl="http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console", hostname="13.82.103.214:8080", pullRequestNumber="23", repoUrl="https://github.com/mcmpdemoeng/jpetstore-kubernetes.git", details="" ):
 
         self.branch = f'release-{time.strftime("%Y")}-{time.strftime("%m")}-{time.strftime("%d")}'
-        #self.build_engine = buildEngine
+        self.build_engine = buildEngine
         self.build_id = buildId
         self.build_status = None
         self.built_at =  None
@@ -26,8 +26,8 @@ class Builder:
         self.event_type = "push"
         self.pull_request_number = pullRequestNumber
         self.repo_url = repoUrl
-        #self.technical_service_name = tecnicalServiceName
-        #self.technical_service_override = True
+        self.technical_service_name = tecnicalServiceName
+        self.technical_service_override = True
         self.href = os.getenv("BUILD_URL", buildUrl)
 
 

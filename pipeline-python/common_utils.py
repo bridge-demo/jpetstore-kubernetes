@@ -93,7 +93,7 @@ def make_web_request(url="", payload={}, headers={}, requestMethod=requests.get,
                 f"""Success 200 response from {url}
                 payload: {payload}
                 method:  {requestMethod.__name__}
-                response:{"Token generated" if LEARN_BRIDGE_AUTH_API in url else response.text}
+                response:{"Token generated" if LEARN_BRIDGE_AUTH_API in url else "Success response"}
                 response status code: {response.status_code}
                 """
             )
@@ -102,7 +102,7 @@ def make_web_request(url="", payload={}, headers={}, requestMethod=requests.get,
             f"""Non 200 response from {url}
             payload: {payload}
             method:  {requestMethod.__name__}
-            response:{"Token generated" if LEARN_BRIDGE_AUTH_API in url else response.text}
+            response:{"Token generated" if LEARN_BRIDGE_AUTH_API in url else "Success response"}
             response status code: {response.status_code}
             """
         )

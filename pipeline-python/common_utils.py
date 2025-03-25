@@ -91,7 +91,6 @@ def make_web_request(url="", payload={}, headers={}, requestMethod=requests.get,
         if response.status_code >= 200 and response.status_code < 300:
             LOGGER.info(
                 f"""Success 200 response from {url}
-                headers: {headers}
                 payload: {payload}
                 method:  {requestMethod.__name__}
                 response:{response.text}
@@ -101,7 +100,6 @@ def make_web_request(url="", payload={}, headers={}, requestMethod=requests.get,
             return response, True, ""
         LOGGER.warn(
             f"""Non 200 response from {url}
-            headers: {headers}
             payload: {payload}
             method:  {requestMethod.__name__}
             response:{response.text}
@@ -114,7 +112,6 @@ def make_web_request(url="", payload={}, headers={}, requestMethod=requests.get,
     except requests.Timeout or requests.ConnectionError or requests.ConnectTimeout:
         LOGGER.error(
             f"""Fail to make request
-                headers: {headers}
                 payload: {payload}
                 error: Fail to connect to {url}  
                 """
@@ -125,7 +122,6 @@ def make_web_request(url="", payload={}, headers={}, requestMethod=requests.get,
     except Exception as error:
         LOGGER.error(
             f"""Fail to make request to {url}
-                headers: {headers}
                 payload: {payload}
                 error:  {error}  """
         )

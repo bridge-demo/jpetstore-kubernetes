@@ -113,7 +113,6 @@ def update_completed_order_status( tenantUrl:str, userID:str, userApiKey:str, or
     tenantUrl = sanitazeTenantUrl(tenantUrl)
     endpointUrl = f"{tenantUrl}consume/api/fulfillment/prov_posthook_response"
     bearer_token = get_bearer_token(tenantUrl=tenantUrl, apikey=userApiKey, subject=userID)
-    print('Bearer: ', bearer_token)
     headers = {
        'Authorization': f"Bearer {bearer_token}",
     }

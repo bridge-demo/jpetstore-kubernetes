@@ -63,7 +63,7 @@ def post_test_cases( tenant_url, bearer_token, test_type="unit" ):
             "accept": "application/json",
         }
 
-        LOGGER.info(params, m.fields)
+        # LOGGER.info(params, m.fields)
 
         print( "publishing test data")
         response = requests.post(url=ENDPOINT, headers=headers, data=m, params=params)

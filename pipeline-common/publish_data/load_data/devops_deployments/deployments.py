@@ -65,7 +65,7 @@ def post_deployment_data(tenant_url, bearer_token):
 
         payload = body.__dict__
 
-        LOGGER.info(json.dumps(payload))
+        # LOGGER.info(json.dumps(payload))
 
         response = requests.post(data=json.dumps(payload), url=ENDPOINT, headers=headers)
         LOGGER.info("Code = " + str(response.status_code))

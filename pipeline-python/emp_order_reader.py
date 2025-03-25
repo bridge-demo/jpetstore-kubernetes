@@ -211,7 +211,7 @@ def get_order_details_for_service_chaining(tenant_user_id, tenant_system_user_ap
     #print(data) #Prints the entire JSON response
     details = parse_petstore_order_details_for_service_chaining( data )
     LOGGER.info("Done reading order Details")
-    LOGGER.info(details)
+    # LOGGER.info(details)
     
     return details
 
@@ -412,22 +412,22 @@ def is_db_ready(tenantApiUrl, tenantUserId, tenantUserApikey, orderNumber):
         response3, isSuccessfulResponse3, _ = common_utils.make_web_request(requestMethod=requests.get, url=ENDPOINT3, headers=headers)
         
         if isSuccessfulResponse and common_utils.get_value_from_dict(response.json(), resource_type_path) == 'azurerm_mysql_flexible_server':
-            LOGGER.info(order_details["service_instance_id"])
-            LOGGER.info(common_utils.get_value_from_dict(response.json(), status_path))
+            # LOGGER.info(order_details["service_instance_id"])
+            # LOGGER.info(common_utils.get_value_from_dict(response.json(), status_path))
             resource_group_name = common_utils.get_value_from_dict(response.json(), resource_group_name_path)
             db_name = common_utils.get_value_from_dict(response.json(), db_name_path)
             return True, resource_group_name, db_name
         
         elif isSuccessfulResponse2 and common_utils.get_value_from_dict(response2.json(), resource_type_path) == 'azurerm_mysql_flexible_server':
-            LOGGER.info(order_details["service_instance_id2"])
-            LOGGER.info(common_utils.get_value_from_dict(response2.json(), status_path))
+            # LOGGER.info(order_details["service_instance_id2"])
+            # LOGGER.info(common_utils.get_value_from_dict(response2.json(), status_path))
             resource_group_name = common_utils.get_value_from_dict(response2.json(), resource_group_name_path)
             db_name = common_utils.get_value_from_dict(response2.json(), db_name_path)
             return True, resource_group_name, db_name
         
         elif isSuccessfulResponse3 and common_utils.get_value_from_dict(response3.json(), resource_type_path) == 'azurerm_mysql_flexible_server':
-            LOGGER.info(order_details["service_instance_id3"])
-            LOGGER.info(common_utils.get_value_from_dict(response3.json(), status_path))
+            # LOGGER.info(order_details["service_instance_id3"])
+            # LOGGER.info(common_utils.get_value_from_dict(response3.json(), status_path))
             resource_group_name = common_utils.get_value_from_dict(response3.json(), resource_group_name_path)
             db_name = common_utils.get_value_from_dict(response3.json(), db_name_path)
             return True, resource_group_name, db_name

@@ -83,7 +83,7 @@ def main():
         logging.error(
             f"""Error:  {error}  """)
         
-    LOGGER.info( json.dumps( pipelineParams, indent=3 ) )
+    # LOGGER.info( json.dumps( pipelineParams, indent=3 ) )
     buildUrl =  os.getenv( "BUILD_URL", "http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console" )
 
         
@@ -209,7 +209,7 @@ def configure_pipeline_status( newValues: dict ):
 
     fileContent = read_state_file( STATE_FILENAME )
     LOGGER.info(f"File state content ({STATE_FILENAME}):")
-    LOGGER.info(fileContent)
+    # LOGGER.info(fileContent)
     dictFileContent = json.loads( fileContent )
 
     orderIsempty = newValues['order_number'] == ""
@@ -297,7 +297,7 @@ def test_petstore( tenantUrl, testToken, technicalServiceName ):
         )
     except:
         LOGGER.error("Error: Fail to publish test data")
-        LOGGER.info(tester.__dict__)
+        # LOGGER.info(tester.__dict__)
 
     
 def deploy_Petstore( tenantUserID,  tenantUserApiKey, tenantApiURL,  orderNumber, deployToken="", imageTag="latest", dockerUser="mcmpdemo",publishToTenant=False ):

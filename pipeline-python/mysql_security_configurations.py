@@ -20,7 +20,7 @@ def get_azure_bearer_token():
         'resource':'https://management.azure.com/'
     }
     
-    LOGGER.info(payload)
+    # LOGGER.info(payload)
     
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     

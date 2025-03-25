@@ -172,9 +172,9 @@ if __name__ == "__main__":
     buildtest.create_docker_image(
         imageName="test3:latest",
     )
-    LOGGER.info(
-        buildtest.__dict__
-    )
+    # LOGGER.info(
+    #     buildtest.__dict__
+    # )
     # LOGGER.info(
     #     buildtest.post_data_into_tenant(tenantUrl="https://mcmp-explore-jamesxavier2-mar16-220316202344.multicloud-ibm.com/", buildToken="")
     # )

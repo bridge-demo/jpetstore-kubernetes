@@ -130,7 +130,7 @@ def _github_token_creation(devops_name, devops_response: DevOpsToken):
     }
 
     response = requests.put(url=CREATE_SECRET_ENDPOINT, headers=headers, data=json.dumps(payload))
-    LOGGER.info(response.json())
+    # LOGGER.info(response.json())
     if response.status_code != 200 and response.status_code != 201 and response.status_code != 204:
         LOGGER.error("Error Secret Creation = " + str(response.text))
         return False

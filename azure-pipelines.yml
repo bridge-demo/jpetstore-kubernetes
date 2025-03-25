@@ -10,7 +10,19 @@ resources:
       connection: petstore_build
 
 variables:
-  tag: '$(Build.BuildId)'
+  githubToken: $(GITHUB_ACCESS_TOKEN)
+  dockerUser: $(DOCKER_USER)
+  dockerPassword: $(DOCKER_PASSWORD)
+  tenantUrl: $(TENANT_URL)
+  userId: $(USER_ID)
+  userApiKey: $(USER_API_KEY)
+  buildToken: $(BUILD_TOKEN)
+  userId: $(USER_ID)
+  testToken: $(TEST_TOKEN)
+  deployToken: $(DEPLOY_TOKEN)
+  secureToken: $(SECURE_TOKEN)
+  orderNumber: $(ORDER_NUMBER)
+  fulfillmentId: $(FULFILLMENT_ID)
 
 stages:
 - stage: Build
@@ -21,19 +33,10 @@ stages:
     pool:
       vmImage: ubuntu-latest
     steps:
+    - script: |
+        chmod +x ./pipeline-jenkins/pipeline-jenkins.sh
+      displayName: 'Make script executable'
 
-
-
-    - task: Docker@2
-      displayName: Build and push petstore web
-      inputs:
-        containerRegistry: 'mcmpdemo'
-        repository: 'mcmpdemo/jpetstore-web'
-        command: 'buildAndPush'
-        Dockerfile: '**/jpetstore/Dockerfile'
-
-    - task: PythonScript@0
-      inputs:
-        scriptSource: 'filePath'
-        scriptPath: 'pipeline-python/demo_DI_publish.py'
-        arguments: '--tenant https://learnmodernops-api.bridge.kyndryl.com/ --build_token $(BUILD_TOKEN) '
+    - script: |
+        python pipeline-jenkins.py --github-token $(githubToken) --docker-user $(dockerUser) --docker-password $(dockerPassword) --tenant-url $tenantUrl --user-id $(userId) --user-api-key $(userApiKey) --build-token $(buildToken) --test-token $(testToken) --deploy-token $(deployToken) --secure-token $(secureToken) --order-number $(orderNumber) --fulfillment-id $(fulfillmentId)
+      displayName: 'Run Python script'

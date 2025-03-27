@@ -17,7 +17,6 @@ variables:
   userId: $(USER_ID)
   userApiKey: $(USER_API_KEY)
   buildToken: $(BUILD_TOKEN)
-  userId: $(USER_ID)
   testToken: $(TEST_TOKEN)
   deployToken: $(DEPLOY_TOKEN)
   secureToken: $(SECURE_TOKEN)

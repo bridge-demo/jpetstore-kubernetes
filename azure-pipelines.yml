@@ -33,12 +33,11 @@ stages:
       vmImage: ubuntu-latest
     steps:
     - script: |
-        echo $(dockerUser)
+        echo $(orderNumber) $(fulfillmentId)
       displayName: 'Echo VARS'
-    # - script: |
-    #     chmod +x ./pipeline-jenkins/pipeline-jenkins.sh
-    #   displayName: 'Make script executable'
-
-    # - script: |
-    #     python pipeline-jenkins.py --github-token $(githubToken) --docker-user $(dockerUser) --docker-password $(dockerPassword) --tenant-url $tenantUrl --user-id $(userId) --user-api-key $(userApiKey) --build-token $(buildToken) --test-token $(testToken) --deploy-token $(deployToken) --secure-token $(secureToken) --order-number $(orderNumber) --fulfillment-id $(fulfillmentId)
-    #   displayName: 'Run Python script'
+    - script: |
+        chmod +x ./pipeline-jenkins/pipeline-jenkins.sh
+      displayName: 'Make script executable'
+    - script: |
+        python pipeline-jenkins.py --github-token $(githubToken) --docker-user $(dockerUser) --docker-password $(dockerPassword) --tenant-url $tenantUrl --user-id $(userId) --user-api-key $(userApiKey) --build-token $(buildToken) --test-token $(testToken) --deploy-token $(deployToken) --secure-token $(secureToken) --order-number $(orderNumber) --fulfillment-id $(fulfillmentId)
+      displayName: 'Run Python script'

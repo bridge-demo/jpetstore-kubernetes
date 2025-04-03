@@ -125,13 +125,13 @@ class Deploy:
     def post_data_into_tenant( self, deployToken: str, tenantUrl:str,  ):
         ##Make sure you sanitize the tenant url as the fist step
         tenantUrl = sanitazeTenantUrl(tenantUrl)
-        endpointUrl = f"{tenantUrl}dash/api/deployments/v4/technical-services/deployments"
+        # PROD endpointUrl = f"{tenantUrl}dash/api/deployments/v4/technical-services/deployments"
         
-        # applicationName = "petstore"
-        # technicalService = self.technical_service_name
-        # tool = self.tool
+        applicationName = "Test-App-v4"
+        technicalService = "petstore-orders-api"
+        tool = "Test-Demo"
 
-        # endpointUrl = f"{tenantUrl}application/{applicationName}/technical-services/{technicalService}/tool/{tool}/deployments"
+        endpointUrl = f"{tenantUrl}application/{applicationName}/technical-services/{technicalService}/tool/{tool}/deployments"
 
         payload = self.__dict__
 

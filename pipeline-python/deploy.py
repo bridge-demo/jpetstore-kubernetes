@@ -95,7 +95,7 @@ class Deploy:
             LOGGER.error(result.stderr)
             raise Exception(f"fail to execute: {result.args}")
 
-        defineHelmPath = f"helm package --destination {jenkinsHome}/modernpets ../helm/modernpets".split(" ")
+        defineHelmPath = f"helm package --destination {jenkinsHome}/modernpets ./helm/modernpets".split(" ")
         result = subprocess.run( defineHelmPath )
         if result.returncode != 0:
             LOGGER.error(f"Fail to define petstore package location ( deployment step 2 )")

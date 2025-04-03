@@ -11,12 +11,12 @@ def deploy_petstore_monitoring( kubeconfigPath="tmp_kube_config" ) -> bool:
         return False
 
     commandsList = [
-       f"kubectl apply -f ../prometheus -n monitoring --kubeconfig {kubeconfigPath}",
+       f"kubectl apply -f ./prometheus -n monitoring --kubeconfig {kubeconfigPath}",
        f"sleep 1m",
-       f"kubectl apply -f ../alertmanager/AlertManagerConfigmap.yaml -n monitoring --kubeconfig {kubeconfigPath}",
-       f"kubectl apply -f ../alertmanager/AlertTemplateConfigMap.yaml -n monitoring --kubeconfig {kubeconfigPath}",
-       f"kubectl apply -f ../alertmanager/Deployment.yaml -n monitoring --kubeconfig {kubeconfigPath}",
-       f"kubectl apply -f ../alertmanager/Service.yaml -n monitoring --kubeconfig {kubeconfigPath}"
+       f"kubectl apply -f ./alertmanager/AlertManagerConfigmap.yaml -n monitoring --kubeconfig {kubeconfigPath}",
+       f"kubectl apply -f ./alertmanager/AlertTemplateConfigMap.yaml -n monitoring --kubeconfig {kubeconfigPath}",
+       f"kubectl apply -f ./alertmanager/Deployment.yaml -n monitoring --kubeconfig {kubeconfigPath}",
+       f"kubectl apply -f ./alertmanager/Service.yaml -n monitoring --kubeconfig {kubeconfigPath}"
     ]
     successfulOperation = executeCommandsList(commandsList)
     if successfulOperation:

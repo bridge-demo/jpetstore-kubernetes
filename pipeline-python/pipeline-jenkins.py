@@ -145,7 +145,7 @@ def petstore_pipeline(  params: dict  ):
  
     LOGGER.info("Building pestore web image")
     result = build_petstore( 
-        dockerFileDirectory="../jpetstore",
+        dockerFileDirectory="./jpetstore",
         dockerUser=params['docker_user'], 
         dockerPassword=params['docker_password'], 
         fullImageName=fullWebImageName, 

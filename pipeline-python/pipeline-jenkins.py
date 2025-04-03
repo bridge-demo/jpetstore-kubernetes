@@ -265,11 +265,12 @@ def read_state_file(fileName: str):
         raise Exception(f"Unable to read '{STATE_FILENAME}'\nError: {error} ")
 
 def build_petstore( dockerFileDirectory=".", dockerUser="", dockerPassword="", fullImageName="", tenantUrl="", buildToken="", publishToTenant=False, pushToDockerRepo=False, technicalServiceName="RT_petstore_on_aks_jenkins" ):
-
+    LOGGER.info("Building Petstore")
     petstoreBuild = build.Builder( buildId=uuid.uuid4().__str__(), tecnicalServiceName=technicalServiceName )
     startTime = datetime.now()
+    LOGGER.info(f"Petstore Build: {petstoreBuild}")
     petstoreBuild.create_docker_image( dockerFileDirectory=dockerFileDirectory, imageName=fullImageName )
-    
+    LOGGER.info(f"Petstore Docker Image created")
     if pushToDockerRepo:
         if not dockerUser or not dockerPassword:
             raise Exception("Error:build_petstore: dockerUser and dockerPassword are required for publishment")

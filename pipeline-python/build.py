@@ -83,6 +83,7 @@ class Builder:
 
         self.built_at = datetime.datetime.utcnow().isoformat("T") + "Z"
         buildCommand = f"sudo docker build -t {imageName} {dockerFileDirectory}"
+        LOGGER.info(f"Docker Build Command {buildCommand}")
         self.details = f"Image -> {imageName}"
         try:
             startTime = datetime.datetime.now()

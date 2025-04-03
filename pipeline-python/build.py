@@ -87,7 +87,7 @@ class Builder:
         try:
             startTime = datetime.datetime.now()
             returnCode = os.system( buildCommand )
-
+            LOGGER.info(f"Status Code Image build {returnCode}")
             successFulBuild = returnCode == 0
             if not successFulBuild:
                 self.build_status = "failed"

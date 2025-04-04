@@ -47,5 +47,9 @@ stages:
         python -m pip install -r ./petstore-catalog-deployment/requirements.txt
       displayName: 'Install dependencies'
     - script: |
+        sleep 300 # Timer for 5 minutes
+        echo "Script finished after 5 minutes"
+      displayName: 'Run script with timer'
+    - script: |
         python ./pipeline-python/pipeline-jenkins.py --github-token $(githubToken) --docker-user $(dockerUser) --docker-password $(dockerPassword) --tenant-url $(tenantUrl) --user-id $(userId) --user-api-key $(userApiKey) --build-token $(buildToken) --test-token $(testToken) --deploy-token $(deployToken) --secure-token $(secureToken) --order-number $(orderNumber) --fulfillment-id $(fulfillmentId)
       displayName: 'Run Python script'

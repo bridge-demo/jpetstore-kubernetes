@@ -49,8 +49,11 @@ class Builder:
             "Content-Type": "application/json",
             "accept": "application/json"
         }
+        params = {
+            "technicalServiceOverride": True,
+        }
 
-        response, success, errorMessage = make_web_request(url=endpointUrl, payload=payload, headers=headers, requestMethod=requests.post)
+        response, success, errorMessage = make_web_request(url=endpointUrl, payload=payload, headers=headers, requestMethod=requests.post, params=params)
         LOGGER.info(
             f"Build publishment status code : {response.status_code}"
         )

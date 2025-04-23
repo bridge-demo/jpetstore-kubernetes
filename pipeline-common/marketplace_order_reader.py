@@ -4,7 +4,7 @@ import os, requests, base64
 def get_order_number_details(tenant_system_user_name, tenant_system_user_api_key, order_number, tenant_api_url):
     data = {}
 
-    ENDPOINT = "{0}v5/api/orders/{1}/detail".format(tenant_api_url, order_number)
+    ENDPOINT = "{0}consume/v5/api/orders/{1}/detail".format(tenant_api_url, order_number)
     headers = {"username": tenant_system_user_name, "apikey": tenant_system_user_api_key}
     response = requests.get(url=ENDPOINT, headers=headers)
     if response.status_code != 200 and response.status_code != 201:

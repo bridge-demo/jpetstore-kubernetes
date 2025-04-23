@@ -5,9 +5,8 @@
 
 
 resources:
-  webhooks:
-    - webhook: petstore_build
-      connection: petstore_build
+  repositories:
+    - repository: self
 
 trigger: none
 

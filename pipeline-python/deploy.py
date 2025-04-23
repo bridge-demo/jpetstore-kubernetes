@@ -104,7 +104,7 @@ class Deploy:
             raise Exception( result.args )
 
         helmUpgradeCommand = f"helm upgrade --install --wait --set image.repository={dockerRepo} --set image.tag={imageTag} --set mysql.url={base64.b64encode(mysqlUrl.encode('utf-8')).decode()} --set mysql.username={base64.b64encode(mysqlUser.encode('utf-8')).decode()} --set mysql.password={base64.b64encode(mysqlPassword.encode('utf-8')).decode()} --set isDBAAS=True --set isLB=False --set httpHost={petstoreHost} --namespace={namespace} --create-namespace {namespace} --kubeconfig tmp_kube_config {jenkinsHome}/modernpets/modernpets-0.1.5.tgz --debug".split(" ")
-        LOGGER.info(f"HELM UPGRADE COMMAND {helmUpgradeCommand}")
+        LOGGER.info(f"HELM UPGRADE COMMAND {str(helmUpgradeCommand)}")
         result = subprocess.run( helmUpgradeCommand )
         endTime = datetime.datetime.now()
         if result.returncode != 0:

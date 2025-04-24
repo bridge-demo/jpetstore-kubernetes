@@ -302,7 +302,7 @@ def parse_service_chaining_details(jsonData, jsonData2):
     for resouce in jsonData["resources"]:
         if resouce["resourceType"] == "azurerm_kubernetes_cluster":
             for output in resouce["templateOutputProperties"]:
-                if output["name"] == "Http Application Routing Zone Name":
+                if output["name"] == "Fqdn":
                     kubenetes_fqdn = output["value"]
 
 

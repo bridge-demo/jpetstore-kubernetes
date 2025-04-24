@@ -38,10 +38,6 @@ stages:
         versionSpec: '3.10.12'
         addToPath: true
     - script: |
-        echo "Listing files in the working directory:"
-        ls -R
-      displayName: 'List files'
-    - script: |
         echo $(orderNumber) $(fulfillmentId)
       displayName: 'Echo VARS'
     - script: |

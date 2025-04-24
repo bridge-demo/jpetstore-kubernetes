@@ -50,7 +50,9 @@ class Deploy:
             createKubeconfigFile=True
         )
         
-        LOGGER.info("Deploy - Petstore Details --- > ", petstore_details)
+        LOGGER.info("Deploy - Petstore Details --- > ", dict(petstore_details))
+        LOGGER.info("Deploy - Petstore Details --- > ", petstore_details["db_url"])
+        LOGGER.info("Deploy - Petstore Details --- > ", petstore_details["fqdn"])
         
         startTime = datetime.datetime.now()
         try:

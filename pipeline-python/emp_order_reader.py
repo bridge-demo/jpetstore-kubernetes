@@ -291,8 +291,8 @@ def parse_service_chaining_details(jsonData, jsonData2):
     db_name = ""
     resource_group = ""
     #LOGGER.info(f"Number of resources in order: {len(jsonData['resources'])}" )
-
-
+    LOGGER.info(f"JSONDATA1 -->", jsonData2)
+    LOGGER.info(f"JSONDATA2 -->", jsonData2)
     for resouce in jsonData["resources"]:
         if resouce["resourceType"] == "azurerm_kubernetes_cluster":
             for output in resouce["templateOutputProperties"]:

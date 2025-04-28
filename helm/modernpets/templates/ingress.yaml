@@ -3,17 +3,13 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: jpetstoreweb
+  namespace: jppetstore
   annotations:
-    # {{ if not (.Values.isIKS) }}
-    # kubernetes.io/ingress.class: addon-http-application-routing
-    # {{ else }}
-    # ingress.bluemix.net/hsts: enabled=true maxAge=31536000 includeSubdomains=true
-    # {{ end }}
-    spec.ingressClassName: nginx
     nginx.ingress.kubernetes.io/rewrite-target: /
   labels:
     app: jpetstoreweb
 spec:
+  ingressClassName: nginx
   rules:
   - host: "jpetstore-web.{{ .Values.httpHost }}"
     http:
@@ -27,34 +23,3 @@ spec:
                 number: 80
       
 {{- end }}
-
-
-
-# apiVersion: networking.k8s.io/v1
-# kind: Ingress
-# metadata:
-#   name: jpetstoreweb
-#   namespace: {{ .Release.Namespace }}
-#   annotations:
-#     kubernetes.io/ingress.class: nginx
-#     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-#     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-#     nginx.ingress.kubernetes.io/rewrite-target: /
-#   labels:
-#     app: jpetstoreweb
-# spec:
-#   tls:
-#   - hosts:
-#     - jpetstore-web.{{ .Values.httpHost }}
-#     secretName: jpetstoreweb-tls
-#   rules:
-#   - host: jpetstore-web.{{ .Values.httpHost }}
-#     http:
-#       paths:
-#       - path: /
-#         pathType: Prefix
-#         backend:
-#           service:
-#             name: web
-#             port:
-#               number: 80

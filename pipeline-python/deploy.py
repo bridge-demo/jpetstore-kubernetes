@@ -121,7 +121,7 @@ class Deploy:
             LOGGER.error(result.stderr)
             raise Exception( result.args )
         
-        installNgnix = f"helm install ingress-nginx ingress-nginx/ingress-nginx".split(" ")
+        installNgnix = f"helm install ingress-nginx ingress-nginx/ingress-nginx --debug".split(" ")
         result = subprocess.run( installNgnix )
         if result.returncode != 0:
             LOGGER.error(f"Fail to install ingress-nginx")

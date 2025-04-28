@@ -105,10 +105,18 @@ class Deploy:
             LOGGER.error(result.stderr)
             raise Exception( result.args )
         
-        downloadNgnix = f"helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx && helm repo update".split(" ")
+        downloadNgnix = f"helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx".split(" ")
         result = subprocess.run( downloadNgnix )
         if result.returncode != 0:
             LOGGER.error(f"Fail to download ingress-nginx")
+            LOGGER.error(result.stdout)
+            LOGGER.error(result.stderr)
+            raise Exception( result.args )
+        
+        updateHelmRepo = f"helm repo update".split(" ")
+        result = subprocess.run( updateHelmRepo )
+        if result.returncode != 0:
+            LOGGER.error(f"Fail to update helm repo")
             LOGGER.error(result.stdout)
             LOGGER.error(result.stderr)
             raise Exception( result.args )

@@ -121,7 +121,7 @@ class Deploy:
             LOGGER.error(result.stderr)
             raise Exception( result.args )
         
-        installNgnix = f"helm install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace --wait --kubeconfig tmp_kube_config".split(" ")
+        installNgnix = f"helm install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace --set controller.service.type=LoadBalancer --wait --debug --kubeconfig tmp_kube_config".split(" ")
         result = subprocess.run( installNgnix )
         if result.returncode != 0:
             LOGGER.error(f"Fail to install ingress-nginx")

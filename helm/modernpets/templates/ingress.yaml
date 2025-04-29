@@ -18,7 +18,7 @@ spec:
           pathType: ImplementationSpecific
           backend:
             service: 
-              name: web
+              name: jpetstore-web
               port:
                 number: 80
       

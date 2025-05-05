@@ -84,7 +84,7 @@ def main():
             f"""Error:  {error}  """)
         
     # LOGGER.info( json.dumps( pipelineParams, indent=3 ) )
-    buildUrl =  os.getenv( "BUILD_URL", "http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console" )
+    buildUrl =  f"{os.getenv('BUILD_URL', 'http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console')}console"
 
         
     error = update_completed_order_status( 

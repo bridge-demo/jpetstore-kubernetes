@@ -24,7 +24,7 @@ class Deploy:
         self.endpoint_technical_service_id = f"{applicaitonUrl}".replace("http://","") #TODO: We can improve this
         self.name = f"{name}_{release}"
         self.provider = provider
-        self.providerhref = os.getenv( "BUILD_URL", deployUrl )
+        self.providerhref = f"{os.getenv('BUILD_URL', deployUrl)}console"
         self.technical_service_name = technical_service_name
         self.technicalserviceoverride = True
         self.status = status
@@ -168,10 +168,10 @@ class Deploy:
             'duration': random.randint(3,50),
             'durationInNano': random.randint(3,50), 
             'endpoint_hostname': 'Do not apply', 
-            'endpoint_technical_service_id':  os.getenv( "BUILD_URL", "http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console" ), 
+            'endpoint_technical_service_id':  f"{os.getenv('BUILD_URL', 'http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console')}console",
             'name': f'Petstore_deployment_{release}', 
             'provider': "Jenkins",
-            'providerhref': os.getenv( "BUILD_URL", "http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console" ), 
+            'providerhref': f"{os.getenv('BUILD_URL', 'http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console')}console", 
             'technical_service_name': technicalService, 
             'technicalserviceoverride': True, 
             'status': 'Deployed', 

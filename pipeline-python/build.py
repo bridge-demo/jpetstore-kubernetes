@@ -28,7 +28,8 @@ class Builder:
         self.repo_url = repoUrl
         self.technical_service_name = tecnicalServiceName
         self.technical_service_override = True
-        self.href = os.getenv("BUILD_URL", buildUrl)
+        self.href = "https://dev.azure.com/jamesxavier2/ModernOpsDemoEng/_build?definitionId=8"
+        self.provider_href = "https://dev.azure.com/jamesxavier2/ModernOpsDemoEng/_build?definitionId=8"
 
 
     def post_data_into_tenant(self,  buildToken: str, tenantUrl:str ):

@@ -1,5 +1,4 @@
 import requests
-import datetime
 import subprocess
 import base64
 import os
@@ -8,6 +7,7 @@ import time
 import logging
 import uuid
 
+from datetime import datetime, timezone
 from emp_order_reader import read_petstore_order
 from common_utils import *
 
@@ -15,23 +15,24 @@ logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger("Deploy")
 class Deploy:
 
-    def __init__(self, deployId=uuid.uuid4().__str__(), technical_service_name="RT_petstore_on_aks_jenkins", duration=100572, name="petstore_deployment", applicaitonUrl="http://jpetstore-web.cd6578cfa15a4488b1b8.eastus.aksapp.io/shop/index.do", provider="Azure", status="fail", environment="production", isProduction=True,deployUrl="http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console" ):
+    def __init__(self, deployId=uuid.uuid4().__str__(), technical_service_name="byo_jenkins_deploy", duration=100572, name="petstore_deployment", applicaitonUrl="http://jpetstore-web.cd6578cfa15a4488b1b8.eastus.aksapp.io/shop/index.do", provider="Azure", status="fail", environment="production", isProduction=True,deployUrl="http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console", release=f'release-{time.strftime("%Y.%m.%d")}'):
 
-        self.creation_date = datetime.datetime.utcnow().isoformat("T") + "Z"
+        self.creation_date = datetime.now(timezone.utc).isoformat(timespec='microseconds').replace('+00:00', 'Z')
         self.deploymentid = os.getenv( "BUILD_ID", deployId )
         self.duration = duration
         self.endpoint_hostname = applicaitonUrl
         self.endpoint_technical_service_id = f"{applicaitonUrl}".replace("http://","") #TODO: We can improve this
-        self.name = name
+        self.name = f"{name}_{release}"
         self.provider = provider
-        self.providerhref = os.getenv( "BUILD_URL", deployUrl )
+        self.providerhref = "https://dev.azure.com/jamesxavier2/ModernOpsDemoEng/_build?definitionId=8"
         self.technical_service_name = technical_service_name
         self.technicalserviceoverride = True
         self.status = status
-        self.tool = "Jenkins"
+        self.tool = "byo_jenkins_deploy"
         self.release = f'release-{time.strftime("%Y")}.{time.strftime("%m")}.{time.strftime("%d")}'
         self.environment = environment
-        self.isproduction = isProduction
+        self.isproduction = isProduction,
+        self.release = release
 
 
     def deploy_petstore(self, dockerUser, imageTag, tenantUserID, tenantUserApiKey, tenantApi, orderNumber, namespace="jppetstore", jenkinsHome=".." ):
@@ -39,7 +40,7 @@ class Deploy:
         If fails return an error (string)
         """
 
-        self.creation_date = datetime.datetime.utcnow().isoformat("T") + "Z"
+        self.creation_date = datetime.now(timezone.utc).isoformat(timespec='microseconds').replace('+00:00', 'Z')
         tenantApi = sanitazeTenantUrl( tenantApi, "api" )
 
         petstore_details = read_petstore_order(
@@ -54,7 +55,7 @@ class Deploy:
         LOGGER.info("Deploy - Petstore Details --- > %s", petstore_details["db_url"])
         LOGGER.info("Deploy - Petstore Details --- > %s", petstore_details["fqdn"])
         
-        startTime = datetime.datetime.now()
+        startTime = datetime.now()
         try:
             self.deploy_petstore_helmchart(
                 dockerRepo=dockerUser,
@@ -66,11 +67,11 @@ class Deploy:
                 jenkinsHome=jenkinsHome
             )
 
-            self.duration =  ( datetime.datetime.now() - startTime ).microseconds
+            self.duration =  ( datetime.now() - startTime ).microseconds
             self.status = "Deployed"
             return None
         except:
-            self.duration =  ( datetime.datetime.now() - startTime ).microseconds
+            self.duration =  ( datetime.now() - startTime ).microseconds
             self.status = "Failed"
             return "Fail to deploy petstore"
 
@@ -79,11 +80,11 @@ class Deploy:
         ##parameters need to be converted to base64 except jenkins path and dockerUser
         ##ensure kubeconfig exists
         ##jenkins home needs to be repopath/helm/modernpets
-        startTime = datetime.datetime.now()
+        startTime = datetime.now()
 
         kubeConfigExists = file_exists("tmp_kube_config")
         if not kubeConfigExists:
-            endTime = datetime.datetime.now()
+            endTime = datetime.now()
             return {
                 "deployStatus": "Failed",
                 "deplouDuration": endTime - startTime
@@ -133,7 +134,7 @@ class Deploy:
         LOGGER.info(f"HELM UPGRADE COMMAND {str(helmUpgradeCommand)}")
         result = subprocess.run( helmUpgradeCommand )
         LOGGER.info(f"RESULT {result.returncode}")
-        endTime = datetime.datetime.now()
+        endTime = datetime.now()
         if result.returncode != 0:
             LOGGER.error(f"Fail to deploy petstore ( deployment step 3 )")
             LOGGER.error(result.stdout)
@@ -153,15 +154,34 @@ class Deploy:
     def post_data_into_tenant( self, deployToken: str, tenantUrl:str,  ):
         ##Make sure you sanitize the tenant url as the fist step
         tenantUrl = sanitazeTenantUrl(tenantUrl)
-        # PROD endpointUrl = f"{tenantUrl}dash/api/deployments/v4/technical-services/deployments"
-        
-        applicationName = "Test-App-v4"
+        applicationName = "petstore"
         technicalService = "petstore-orders-api"
-        tool = "Test-Demo"
-
-        endpointUrl = f"{tenantUrl}application/{applicationName}/technical-services/{technicalService}/tool/{tool}/deployments"
-
-        payload = self.__dict__
+        tool = "byo_jenkins_deploy"
+        release=f'release-{time.strftime("%Y.%m.%d")}'
+        deployDate=datetime.now(timezone.utc).isoformat(timespec='microseconds').replace('+00:00', 'Z')
+        endpointUrl = f"{tenantUrl}dash/api/deployments/v4/application/{applicationName}/technical-services/{technicalService}/tool/{tool}/deployments"
+        params = {
+            "technicalServiceOverride": 'true'
+        }
+        payload = {
+            'creation_date': deployDate, 
+            'deploymentid': "Petstore_" + str(uuid.uuid4()), 
+            'duration': random.randint(3,50),
+            'durationInNano': random.randint(3,50), 
+            'endpoint_hostname': 'Do not apply', 
+            'endpoint_technical_service_id':  "https://dev.azure.com/jamesxavier2/ModernOpsDemoEng/_build?definitionId=8", 
+            'name': f'Petstore_deployment_{release}', 
+            'provider': "Azure",
+            'providerhref': "https://dev.azure.com/jamesxavier2/ModernOpsDemoEng/_build?definitionId=8", 
+            'technical_service_name': technicalService, 
+            'technicalserviceoverride': True, 
+            'status': 'Deployed', 
+            'tool': tool, 
+            'release': release, 
+            'environment': 'production', 
+            'isproduction': True
+        }
+    
 
         headers = {
             "Authorization": f"TOKEN {deployToken}",
@@ -169,7 +189,7 @@ class Deploy:
             "accept": "application/json"
         }
 
-        response, success, errorMessage = make_web_request(url=endpointUrl, payload=payload, headers=headers, requestMethod=requests.post)
+        response, success, errorMessage = make_web_request(url=endpointUrl, payload=payload, headers=headers, requestMethod=requests.pos, params=params)
 
         LOGGER.info(
             f"Deploy publishment status code : {response.status_code}"

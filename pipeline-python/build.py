@@ -37,9 +37,9 @@ class Builder:
 
         tenantUrl = sanitazeTenantUrl(tenantUrl)
         # PROD - endpointUrl = f"{tenantUrl}dash/api/build/v3/technical-services/builds"
-        applicationName = "Test-App-v4"
+        applicationName = "petstore"
         technicalServiceName = "petstore-orders-api"
-        toolName = "byo_build"
+        toolName = "byo_jenkins"
 
         endpointUrl = f"{tenantUrl}dash/api/build/v3/application/{applicationName}/technical-services/{technicalServiceName}/tool/{toolName}/builds"
 

@@ -21,8 +21,8 @@ args = parser.parse_args()
 def get_service_invetory_id(tenantUrl: str, userid: str, apikey:str, orderNumber:str ) -> dict:
     """Gets serviceInventoryID"""
     
-    tenantApiUrl = sanitazeTenantUrl( tenantUrl=tenantUrl, urlType='api')
-    ENDPOINT = f"{tenantApiUrl}v5/api/orders/{orderNumber}/detail"
+    tenantApiUrl = sanitazeTenantUrl( tenantUrl=tenantUrl)
+    ENDPOINT = f"{tenantApiUrl}consume/v5/api/orders/{orderNumber}/detail"
 
     headers = {
         "username": userid, 

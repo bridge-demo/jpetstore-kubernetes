@@ -5,6 +5,10 @@ import os
 from common_utils import *
 import uuid
 import logging
+import random
+
+from datetime import datetime, timezone
+
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger("Build")
 
@@ -29,28 +33,51 @@ class Builder:
         self.technical_service_name = tecnicalServiceName
         self.technical_service_override = True
         self.href = os.getenv("BUILD_URL", buildUrl)
+        self.provider_href = os.getenv("BUILD_URL", buildUrl)
 
 
     def post_data_into_tenant(self,  buildToken: str, tenantUrl:str ):
         ##Make sure you sanitize the tenant url as the fist step
 
         tenantUrl = sanitazeTenantUrl(tenantUrl)
-        endpointUrl = f"{tenantUrl}dash/api/build/v3/technical-services/builds"
-        # applicationName = "petstore"
-        # technicalServiceName = "RT_petstore_on_aks_jenkins"
-        # toolName = "Test-Demo"
-
-        # endpointUrl = f"{tenantUrl}dash/api/build/v3/application/{applicationName}/technical-services/{technicalServiceName}/tool/{toolName}/builds"
-
-        payload = self.__dict__
-
         headers = {
             "Authorization": f"TOKEN {buildToken}",
             "Content-Type": "application/json",
             "accept": "application/json"
         }
+        params = {
+            "technicalServiceOverride": True,
+        }
+        technicalServiceName = "petstore-orders-api"
+        applicationName = "petstore"
+        toolName = "byo_jenkins"
+        endpointUrl = f"{tenantUrl}dash/api/build/v3/application/{applicationName}/technical-services/{technicalServiceName}/tool/{toolName}/builds"
+        branch=f'release-{time.strftime("%Y.%m.%d")}'
+        params = {
+            "technicalServiceOverride": 'true'
+        }
+        payload = {
+            'branch': branch, 
+            'build_engine': 'Jenkins', 
+            'build_id': str(uuid.uuid4()), 
+            'build_status': 'passed', 
+            'built_at': datetime.now(timezone.utc).isoformat(timespec='microseconds').replace('+00:00', 'Z'), 
+            'commit': '606b16c15ea6ade03fe70dc9a88c306a54be7a14', 
+            'details': 'Sample data build', 
+            'duration': random.randint(3,50), ## Build time has to be in nano seconds!! ## 
+            'durationInNano': random.randint(3,50),
+            'endpoint_hostname': os.getenv("JENKINS_URL", "13.82.103.214:8080"), 
+            'endpoint_technical_service_id': technicalServiceName, 
+            'event_type': 'push', 
+            'pull_request_number': '23', 
+            'repo_url': 'https://github.com/bridge-demo/jpetstore-kubernetes', 
+            'technical_service_name': technicalServiceName, 
+            'technical_service_override': True, 
+            'href': os.getenv("BUILD_URL", "http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console"),
+            'provider_href': os.getenv("BUILD_URL", "http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console")
+        }
 
-        response, success, errorMessage = make_web_request(url=endpointUrl, payload=payload, headers=headers, requestMethod=requests.post)
+        response, success, errorMessage = make_web_request(url=endpointUrl, payload=payload, headers=headers, requestMethod=requests.post, params=params)
         LOGGER.info(
             f"Build publishment status code : {response.status_code}"
         )
@@ -81,17 +108,17 @@ class Builder:
 
     def create_docker_image(self,  imageName="defaultName", dockerFileDirectory=".",   ):
 
-        self.built_at = datetime.datetime.utcnow().isoformat("T") + "Z"
+        self.built_at = datetime.utcnow().isoformat("T") + "Z"
         buildCommand = f"sudo docker build -t {imageName} {dockerFileDirectory}"
         self.details = f"Image -> {imageName}"
         try:
-            startTime = datetime.datetime.now()
+            startTime = datetime.now()
             returnCode = os.system( buildCommand )
 
             successFulBuild = returnCode == 0
             if not successFulBuild:
                 self.build_status = "failed"
-                endTime = datetime.datetime.now()
+                endTime = datetime.now()
                 self.duration = (endTime - startTime).microseconds * 10000
                 self.durationInNano = self.duration
                 return {
@@ -99,7 +126,7 @@ class Builder:
                 "buildStatus" : self.build_status
             }
 
-            endTime = datetime.datetime.now()
+            endTime = datetime.now()
             self.build_status = "passed"
             self.duration = (endTime - startTime).microseconds * 1000
             self.durationInNano = self.duration
@@ -109,7 +136,7 @@ class Builder:
             }
 
         except BaseException as error:
-            endTime = datetime.datetime.now()
+            endTime = datetime.now()
             LOGGER.error(
                 f"Fail to buid image '{imageName}' in path '{dockerFileDirectory}'\nError: {error}"
             )

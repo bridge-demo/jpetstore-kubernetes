@@ -21,7 +21,7 @@ class Builder:
         self.details = details
         self.duration = -1
         self.durationInNano = -1
-        self.endpoint_hostname = os.getenv("JENKINS_URL", hostname)
+        self.endpoint_hostname = "https://dev.azure.com/jamesxavier2/ModernOpsDemoEng/_build?definitionId=8"
         self.endpoint_technical_service_id = hostname.replace(":","_")
         self.event_type = "push"
         self.pull_request_number = pullRequestNumber

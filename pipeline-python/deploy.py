@@ -189,7 +189,7 @@ class Deploy:
             "accept": "application/json"
         }
 
-        response, success, errorMessage = make_web_request(url=endpointUrl, payload=payload, headers=headers, requestMethod=requests.pos, params=params)
+        response, success, errorMessage = make_web_request(url=endpointUrl, payload=payload, headers=headers, requestMethod=requests.post, params=params)
 
         LOGGER.info(
             f"Deploy publishment status code : {response.status_code}"

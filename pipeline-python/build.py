@@ -48,7 +48,7 @@ class Builder:
         params = {
             "technicalServiceOverride": True,
         }
-        technicalServiceName = "petstore-orders-api"
+        technicalServiceName = "PetstorePattern"
         applicationName = "petstore"
         toolName = "byo_jenkins"
         endpointUrl = f"{tenantUrl}dash/api/build/v3/application/{applicationName}/technical-services/{technicalServiceName}/tool/{toolName}/builds"

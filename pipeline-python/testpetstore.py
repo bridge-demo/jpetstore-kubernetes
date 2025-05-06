@@ -56,11 +56,9 @@ class Tester:
       
         runId = str(uuid.uuid4())
         tenantUrl = sanitazeTenantUrl(tenantUrl)
-        endpoint = f"{tenantUrl}dash/api/test/v3/technical-services/tests/run/{runId}/status"
-        # applicationName = "petstore"
-        # toolName = "JFrog"
-
-        # endpoint = f"{tenantUrl}application/{applicationName}/technical-services/{technicalServiceName}/tool/{toolName}/tests/{runId}/status"
+        applicationName = "petstore"
+        tool = "byo_jenkins_test"
+        endpoint = f"{tenantUrl}dash/api/test/v3/application/{applicationName}/technical-services/PetstorePattern/tool/{tool}/tests/{runId}/status"
 
         params = {
             "technicalServiceName": technicalServiceName,

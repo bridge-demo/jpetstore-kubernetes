@@ -154,7 +154,7 @@ class Deploy:
         ##Make sure you sanitize the tenant url as the fist step
         tenantUrl = sanitazeTenantUrl(tenantUrl)
         applicationName = "petstore"
-        technicalService = "petstore-orders-api"
+        technicalService = "PetstorePattern"
         tool = "byo_jenkins_deploy"
         release=f'release-{time.strftime("%Y.%m.%d")}'
         deployDate=datetime.now(timezone.utc).isoformat(timespec='microseconds').replace('+00:00', 'Z')

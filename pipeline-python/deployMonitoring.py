@@ -4,7 +4,7 @@ logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger("Monitoring")
 
 def deploy_petstore_monitoring( kubeconfigPath="tmp_kube_config" ) -> bool:
-    LOGGER.info("Deploy monioring...")
+    LOGGER.info("Deploy monitoring...")
     error = create_kubernetes_namespace(kubeconfigPath="tmp_kube_config", namespace="monitoring")
     if error:
         

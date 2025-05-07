@@ -50,10 +50,6 @@ class Deploy:
             createKubeconfigFile=True
         )
         
-        LOGGER.info("Deploy - Petstore Details --- > %s", petstore_details)
-        LOGGER.info("Deploy - Petstore Details --- > %s", petstore_details["db_url"])
-        LOGGER.info("Deploy - Petstore Details --- > %s", petstore_details["fqdn"])
-        
         startTime = datetime.now()
         try:
             self.deploy_petstore_helmchart(

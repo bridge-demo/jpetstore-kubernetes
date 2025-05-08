@@ -56,27 +56,16 @@ class Tester:
       
         runId = str(uuid.uuid4())
         tenantUrl = sanitazeTenantUrl(tenantUrl)
-        endpoint = f"{tenantUrl}dash/api/test/v3/technical-services/tests/run/{runId}/status"
-        # applicationName = "petstore"
-        # toolName = "JFrog"
-
-        # endpoint = f"{tenantUrl}application/{applicationName}/technical-services/{technicalServiceName}/tool/{toolName}/tests/{runId}/status"
-
-        params = {
-            "technicalServiceName": technicalServiceName,
-            "testEngine": testEngine,
-            "technicalServiceOverride" : self.serviceoverride,
-            "runID": runId,
-            "Authorization": testToken,
-        }
-        
+        applicationName = "petstore"
+        tool = "byo_ado_test"
+        endpoint = f"{tenantUrl}dash/api/test/v3/application/{applicationName}/technical-services/DynatraceInstallVM/tool/{tool}/tests/{runId}/status"
         payload = {
             "bugs": bugs,
             "codecoverage": codeCoverage,
             "codesmells": codeSmells,
             "duration": self.durationSeconds,
-            "endpoint_hostname": os.getenv( "BUILD_URL", hostName ),
-            "endpoint_service_id": os.getenv( "BUILD_URL", hostName ),
+            "endpoint_hostname": "https://dev.azure.com/jamesxavier2/ModernOpsDemoEng/_build?definitionId=8",
+            "endpoint_service_id": "https://dev.azure.com/jamesxavier2/ModernOpsDemoEng/_build?definitionId=8",
             "environmentname": env,
             "failed": self.failed,
             "passed": self.passed,
@@ -90,6 +79,14 @@ class Tester:
         headers = {
             'Content-Type': 'application/json',
             'Authorization': f'Token {testToken}'
+        }
+
+        params = {
+            "technicalServiceName": technicalServiceName,
+            "testEngine": testEngine,
+            "technicalServiceOverride" : 'true',
+            "runID": runId,
+            "Authorization": testToken,
         }
 
         response, succesfulOperation, errorMessage = make_web_request(url=endpoint, payload=payload, headers=headers, requestMethod=requests.post, params=params)

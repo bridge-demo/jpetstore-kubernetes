@@ -48,9 +48,9 @@ class Builder:
         params = {
             "technicalServiceOverride": True,
         }
-        technicalServiceName = "petstore-orders-api"
+        technicalServiceName = "PetstorePattern"
         applicationName = "petstore"
-        toolName = "byo_jenkins"
+        toolName = "byo_ado"
         endpointUrl = f"{tenantUrl}dash/api/build/v3/application/{applicationName}/technical-services/{technicalServiceName}/tool/{toolName}/builds"
         branch=f'release-{time.strftime("%Y.%m.%d")}'
         params = {

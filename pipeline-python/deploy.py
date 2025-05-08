@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger("Deploy")
 class Deploy:
 
-    def __init__(self, deployId=uuid.uuid4().__str__(), technical_service_name="byo_jenkins_deploy", duration=100572, name="petstore_deployment", applicaitonUrl="http://jpetstore-web.cd6578cfa15a4488b1b8.eastus.aksapp.io/shop/index.do", provider="Azure", status="fail", environment="production", isProduction=True,deployUrl="http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console", release=f'release-{time.strftime("%Y.%m.%d")}'):
+    def __init__(self, deployId=uuid.uuid4().__str__(), technical_service_name="byo_ado_deploy", duration=100572, name="petstore_deployment", applicaitonUrl="http://jpetstore-web.cd6578cfa15a4488b1b8.eastus.aksapp.io/shop/index.do", provider="Azure", status="fail", environment="production", isProduction=True,deployUrl="http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console", release=f'release-{time.strftime("%Y.%m.%d")}'):
 
         self.creation_date = datetime.now(timezone.utc).isoformat(timespec='microseconds').replace('+00:00', 'Z')
         self.deploymentid = os.getenv( "BUILD_ID", deployId )
@@ -28,7 +28,7 @@ class Deploy:
         self.technical_service_name = technical_service_name
         self.technicalserviceoverride = True
         self.status = status
-        self.tool = "byo_jenkins_deploy"
+        self.tool = "byo_ado_deploy"
         self.release = f'release-{time.strftime("%Y")}.{time.strftime("%m")}.{time.strftime("%d")}'
         self.environment = environment
         self.isproduction = isProduction,
@@ -155,8 +155,8 @@ class Deploy:
         ##Make sure you sanitize the tenant url as the fist step
         tenantUrl = sanitazeTenantUrl(tenantUrl)
         applicationName = "petstore"
-        technicalService = "petstore-orders-api"
-        tool = "byo_jenkins_deploy"
+        technicalService = "PetstorePattern"
+        tool = "byo_ado_deploy"
         release=f'release-{time.strftime("%Y.%m.%d")}'
         deployDate=datetime.now(timezone.utc).isoformat(timespec='microseconds').replace('+00:00', 'Z')
         endpointUrl = f"{tenantUrl}dash/api/deployments/v4/application/{applicationName}/technical-services/{technicalService}/tool/{tool}/deployments"

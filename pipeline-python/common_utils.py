@@ -94,7 +94,6 @@ def make_web_request(url="", payload={}, headers={}, requestMethod=requests.get,
                 headers: {headers}
                 payload: {payload}
                 method:  {requestMethod.__name__}
-                response:{response.text}
                 response status code: {response.status_code}
                 """
             )

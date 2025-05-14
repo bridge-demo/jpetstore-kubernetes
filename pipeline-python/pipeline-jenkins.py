@@ -98,6 +98,12 @@ def main():
     #     "resource_group":"rg0802-343ea888-b4ea-93b6-e17d-5abd79a370ec"
     # }
     LOGGER.info(f"KUBE CONFIG ---> {pipelineParams['kube_config']}")
+    # Read kubeconfig as string
+    with open(f"./{pipelineParams['kube_config']}", 'r') as f:
+        kubeconfig_str = f.read()
+
+    # Print or use the string
+    LOGGER.info(f"KUBE CONFIG ---> {kubeconfig_str}")
     service_details = {
         "db_user": pipelineParams['db_user'],
         "db_password": pipelineParams['db_password'],

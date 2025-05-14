@@ -51,7 +51,7 @@ class Deploy:
         # )
         with open(f"./{params['kube_config']}", 'r') as f:
             kubeconfig_str = f.read()
-
+        LOGGER.info(f"KUBE CONFIG ---> {kubeconfig_str}")
         # Print or use the string
         petstore_details = {
             "db_user": params['db_user'],

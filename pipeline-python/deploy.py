@@ -159,11 +159,13 @@ class Deploy:
         params = {
             "technicalServiceOverride": 'true'
         }
+        min_ns = 5 * 60 * 1_000_000_000
+        max_ns = 10 * 60 * 1_000_000_000
         payload = {
             'creation_date': deployDate, 
             'deploymentid': "Petstore_" + str(uuid.uuid4()), 
-            'duration': random.randint(3,50),
-            'durationInNano': random.randint(3,50), 
+            'duration': random.randint(min_ns, max_ns),
+            'durationInNano': random.randint(min_ns, max_ns),  
             'endpoint_hostname': 'Do not apply', 
             'endpoint_technical_service_id':  f"{os.getenv('BUILD_URL', 'http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console')}console",
             'name': f'Petstore_deployment_{release}', 

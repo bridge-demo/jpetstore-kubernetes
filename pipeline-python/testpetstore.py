@@ -67,12 +67,16 @@ class Tester:
             "runID": runId,
             "Authorization": testToken,
         }
+
+        min_ns = 1.5 * 60 * 1_000_000_000
+        max_ns = 3 * 60 * 1_000_000_000
         
         payload = {
             "bugs": bugs,
             "codecoverage": codeCoverage,
             "codesmells": codeSmells,
-            "duration": self.durationSeconds,
+            "duration": randint(min_ns, max_ns),
+            "durationInNano": randint(min_ns, max_ns), 
             "endpoint_hostname": f"{os.getenv('BUILD_URL', hostName)}console",
             "endpoint_service_id": f"{os.getenv('BUILD_URL', hostName)}console",
             "environmentname": env,

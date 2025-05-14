@@ -16,7 +16,6 @@ from common_utils import *
 from emp_order_reader import read_petstore_order, is_db_ready
 from mysql_security_configurations import *
 import time
-import yaml
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger("Pipeline")

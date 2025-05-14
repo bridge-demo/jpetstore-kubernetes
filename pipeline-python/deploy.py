@@ -79,7 +79,7 @@ class Deploy:
         ##ensure kubeconfig exists
         ##jenkins home needs to be repopath/helm/modernpets
         startTime = datetime.now()
-        path_kube_config = "~/tmp_kube_config"
+        path_kube_config = "/home/azureuser/tmp_kube_config"
 
         kubeConfigExists = file_exists(path_kube_config)
         if not kubeConfigExists:

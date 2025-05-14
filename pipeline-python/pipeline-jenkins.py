@@ -214,7 +214,7 @@ def petstore_pipeline(  params: dict  ):
         tenantUserID=params["user_id"],
         tenantUserApiKey=params["user_api_key"],
         tenantApiURL=tenantApiUrl,
-        orderNumber=params["order_number"],
+        orderNumber="",
         deployToken=params["deploy_token"],
         publishToTenant=True
      )

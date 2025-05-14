@@ -110,9 +110,9 @@ def main():
     tmp_file.write(service_details['tmp_kube_config'])
     tmp_file.close()
 
-    change_secure_transport_flag(resource_group_name=pipelineParams['resource_group'], mysql_server_name=pipelineParams['db_name'])         
-    time.sleep(60)
-    change_public_network_access(resource_group_name=pipelineParams['resource_group'], mysql_server_name=pipelineParams['db_name'])
+    # change_secure_transport_flag(resource_group_name=pipelineParams['resource_group'], mysql_server_name=pipelineParams['db_name'])         
+    # time.sleep(60)
+    # change_public_network_access(resource_group_name=pipelineParams['resource_group'], mysql_server_name=pipelineParams['db_name'])
         
     # LOGGER.info( json.dumps( pipelineParams, indent=3 ) )
     # buildUrl =  f"{os.getenv('BUILD_URL', 'http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console')}console"

@@ -45,6 +45,8 @@ def create_kubernetes_namespace(kubeconfigPath="tmp_kube_config", namespace="mon
     Creates the kubernentes namespace only if doesn't exists.\n
     Returns an error string if fails
     """
+
+    LOGGER.info(f"FILE {kubeconfigPath}")
     try:
         ##TODO: we need to halde the case the kubecofig is not correct and causes the error
         returncode = os.system(f"kubectl get ns {namespace} --kubeconfig {kubeconfigPath} ")

@@ -172,7 +172,7 @@ def petstore_pipeline(  params: dict  ):
     fullWebImageName = f"{params['docker_user']}/jpetstore-web:latest"
     fullDBImageName = f"{params['docker_user']}/jpetstore-db:latest"
     technicalServiceName = "RT_petstore_on_aks_jenkins"
- 
+
     LOGGER.info("Building pestore web image")
     result = build_petstore( 
         dockerFileDirectory="../jpetstore",
@@ -216,7 +216,8 @@ def petstore_pipeline(  params: dict  ):
         tenantApiURL=tenantApiUrl,
         orderNumber="",
         deployToken=params["deploy_token"],
-        publishToTenant=True
+        publishToTenant=True,
+        params= params
      )
 
     #secure_Petstore(tenantUrl=params["tenant_url"], secureToken=params["secure_token"])
@@ -334,7 +335,7 @@ def test_petstore( tenantUrl, testToken, technicalServiceName ):
         # LOGGER.info(tester.__dict__)
 
     
-def deploy_Petstore( tenantUserID,  tenantUserApiKey, tenantApiURL,  orderNumber, deployToken="", imageTag="latest", dockerUser="mcmpdemo",publishToTenant=False ):
+def deploy_Petstore( tenantUserID,  tenantUserApiKey, tenantApiURL,  orderNumber, deployToken="", imageTag="latest", dockerUser="mcmpdemo",publishToTenant=False, params={}):
     deployment = Deploy()
     deployment.deploy_petstore (
         dockerUser=dockerUser,
@@ -342,7 +343,8 @@ def deploy_Petstore( tenantUserID,  tenantUserApiKey, tenantApiURL,  orderNumber
         tenantUserID=tenantUserID,
         tenantUserApiKey=tenantUserApiKey,
         tenantApi=tenantApiURL,
-        orderNumber=orderNumber
+        orderNumber=orderNumber,
+        params= params
     )
     tenantUrl = sanitazeTenantUrl(tenantApiURL)
 

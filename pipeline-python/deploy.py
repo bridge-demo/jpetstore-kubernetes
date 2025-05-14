@@ -79,8 +79,9 @@ class Deploy:
         ##ensure kubeconfig exists
         ##jenkins home needs to be repopath/helm/modernpets
         startTime = datetime.now()
+        path_kube_config = "~/tmp_kube_config"
 
-        kubeConfigExists = file_exists("tmp_kube_config")
+        kubeConfigExists = file_exists(path_kube_config)
         if not kubeConfigExists:
             endTime = datetime.now()
             return {
@@ -88,7 +89,7 @@ class Deploy:
                 "deplouDuration": endTime - startTime
             }
 
-        cleanPetstore = f"kubectl delete job jpetstoredb --ignore-not-found -n {namespace} --kubeconfig tmp_kube_config".split(" ")
+        cleanPetstore = f"kubectl delete job jpetstoredb --ignore-not-found -n {namespace} --kubeconfig {path_kube_config}".split(" ")
         result = subprocess.run( cleanPetstore )
         if result.returncode != 0:
             LOGGER.error("Fail to delete petstore job ( deployment step 1 )")
@@ -120,7 +121,7 @@ class Deploy:
             LOGGER.error(result.stderr)
             raise Exception( result.args )
 
-        installNgnix = f"helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace --set controller.service.type=LoadBalancer --wait --kubeconfig tmp_kube_config".split(" ")
+        installNgnix = f"helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace --set controller.service.type=LoadBalancer --wait --kubeconfig {path_kube_config}".split(" ")
         result = subprocess.run( installNgnix )
         if result.returncode != 0:
             LOGGER.error(f"Fail to install ingress-nginx")
@@ -128,7 +129,7 @@ class Deploy:
             LOGGER.error(result.stderr)
             raise Exception( result.args )
 
-        helmUpgradeCommand = f"helm upgrade --install --wait --set image.repository={dockerRepo} --set image.tag={imageTag} --set mysql.url={base64.b64encode(mysqlUrl.encode('utf-8')).decode()} --set mysql.username={base64.b64encode(mysqlUser.encode('utf-8')).decode()} --set mysql.password={base64.b64encode(mysqlPassword.encode('utf-8')).decode()} --set isDBAAS=True --set isLB=False --set httpHost={petstoreHost} --set ingress.hosts[0]={petstoreHost} --namespace={namespace} --create-namespace {namespace} --kubeconfig tmp_kube_config {jenkinsHome}/modernpets/modernpets-0.1.5.tgz".split(" ")
+        helmUpgradeCommand = f"helm upgrade --install --wait --set image.repository={dockerRepo} --set image.tag={imageTag} --set mysql.url={base64.b64encode(mysqlUrl.encode('utf-8')).decode()} --set mysql.username={base64.b64encode(mysqlUser.encode('utf-8')).decode()} --set mysql.password={base64.b64encode(mysqlPassword.encode('utf-8')).decode()} --set isDBAAS=True --set isLB=False --set httpHost={petstoreHost} --set ingress.hosts[0]={petstoreHost} --namespace={namespace} --create-namespace {namespace} --kubeconfig {path_kube_config} {jenkinsHome}/modernpets/modernpets-0.1.5.tgz".split(" ")
         result = subprocess.run( helmUpgradeCommand )
         endTime = datetime.now()
         if result.returncode != 0:

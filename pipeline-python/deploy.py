@@ -169,7 +169,7 @@ class Deploy:
             'endpoint_hostname': 'Do not apply', 
             'endpoint_technical_service_id':  f"{os.getenv('BUILD_URL', 'http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console')}console",
             'name': f'Petstore_deployment_{release}', 
-            'provider': "Jenkins",
+            'provider': "Azure",
             'providerhref': f"{os.getenv('BUILD_URL', 'http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console')}console", 
             'technical_service_name': technicalService, 
             'technicalserviceoverride': True, 

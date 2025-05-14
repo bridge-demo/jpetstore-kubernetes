@@ -42,21 +42,11 @@ class Deploy:
         self.creation_date = datetime.utcnow().isoformat("T") + "Z"
         tenantApi = sanitazeTenantUrl( tenantApi, "api" )
 
-        # petstore_details = read_petstore_order(
-        #     tenantApiUrl=tenantApi,
-        #     tenantUserId=tenantUserID,
-        #     tenantUserApikey=tenantUserApiKey,
-        #     orderNumber=orderNumber,
-        #     createKubeconfigFile=True
-        # )
-        with open(f"./{params['kube_config']}", 'r') as f:
-            kubeconfig_str = f.read()
-        LOGGER.info(f"KUBE CONFIG ---> {kubeconfig_str}")
         # Print or use the string
         petstore_details = {
             "db_user": params['db_user'],
             "db_password": params['db_password'],
-            "tmp_kube_config": kubeconfig_str,
+            "tmp_kube_config": "IS IN THE VM",
             "fqdn": params['fqdn'],
             "db_url": params['db_url'],
             "db_name": params['db_name'],

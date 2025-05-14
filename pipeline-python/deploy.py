@@ -49,10 +49,14 @@ class Deploy:
         #     orderNumber=orderNumber,
         #     createKubeconfigFile=True
         # )
+        with open(f"./{params['kube_config']}", 'r') as f:
+            kubeconfig_str = f.read()
+
+        # Print or use the string
         petstore_details = {
             "db_user": params['db_user'],
             "db_password": params['db_password'],
-            "tmp_kube_config": params['kube_config'],
+            "tmp_kube_config": kubeconfig_str,
             "fqdn": params['fqdn'],
             "db_url": params['db_url'],
             "db_name": params['db_name'],

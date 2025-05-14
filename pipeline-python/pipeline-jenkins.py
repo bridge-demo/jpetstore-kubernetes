@@ -114,7 +114,7 @@ def main():
         "resource_group": pipelineParams['resource_group']
     }
     tmp_file = open("tmp_kube_config", "w")
-    tmp_file.write(service_details['tmp_kube_config'])
+    tmp_file.write(kubeconfig_str)
     tmp_file.close()
 
     # change_secure_transport_flag(resource_group_name=pipelineParams['resource_group'], mysql_server_name=pipelineParams['db_name'])         

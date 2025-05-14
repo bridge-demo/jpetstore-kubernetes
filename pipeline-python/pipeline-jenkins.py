@@ -107,7 +107,7 @@ def main():
     service_details = {
         "db_user": pipelineParams['db_user'],
         "db_password": pipelineParams['db_password'],
-        "tmp_kube_config": pipelineParams['kube_config'],     
+        "tmp_kube_config": kubeconfig_str,     
         "fqdn": pipelineParams['fqdn'],
         "db_url": pipelineParams['db_url'],
         "db_name": pipelineParams['db_name'],

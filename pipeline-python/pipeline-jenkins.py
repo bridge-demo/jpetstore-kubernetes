@@ -16,6 +16,7 @@ from common_utils import *
 from emp_order_reader import read_petstore_order, is_db_ready
 from mysql_security_configurations import *
 import time
+import yaml
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger("Pipeline")
@@ -98,11 +99,22 @@ def main():
     #     "resource_group":"rg0802-343ea888-b4ea-93b6-e17d-5abd79a370ec"
     # }
     # Read kubeconfig as string
-    with open("/home/azureuser/tmp_kube_config", 'r') as f:
+    with open(f"/home/azureuser/tmp_kube_config", 'r') as f:
         kubeconfig_str = f.read()
 
-    LOGGER.info(f"INFO ---> {kubeconfig_str}")
-
+    LOGGER.info(f"KUBE CONFIG ---> {kubeconfig_str}")
+    service_details = {
+        "db_user": pipelineParams['db_user'],
+        "db_password": pipelineParams['db_password'],
+        "tmp_kube_config": kubeconfig_str,     
+        "fqdn": pipelineParams['fqdn'],
+        "db_url": pipelineParams['db_url'],
+        "db_name": pipelineParams['db_name'],
+        "resource_group": pipelineParams['resource_group']
+    }
+    tmp_file = open("tmp_kube_config", "w")
+    tmp_file.write(kubeconfig_str)
+    tmp_file.close()
 
     # change_secure_transport_flag(resource_group_name=pipelineParams['resource_group'], mysql_server_name=pipelineParams['db_name'])         
     # time.sleep(60)

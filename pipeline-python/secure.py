@@ -313,12 +313,13 @@ def publish_sample_dcheck(tenantUrl, secureToken, technicalService="sample_data"
 
 def publishSecureData(tenantUrl, secureToken):
     secure = Secure()
-    publishSL = secure.publish_secure_licenses(tenantUrl, secureToken)
-    publishVS = secure.publish_vulnerability_scan(tenantUrl, secureToken,)
+    # publishSL = secure.publish_secure_licenses(tenantUrl, secureToken)
+    # publishVS = secure.publish_vulnerability_scan(tenantUrl, secureToken,) TODO: Needs a fix, something changed in the url
     publishSS = secure.publish_static_scan( tenantUrl, secureToken,  )
     publishDT = publish_sample_dcheck(tenantUrl, secureToken, technicalService=secure.technical_service_name)
 
-    if publishSL and publishVS and publishSS and publishDT:
+    #TODO: add the publishVS and publishSL result to the condition
+    if  publishSS and publishDT:
         return True
     return False
 
@@ -327,12 +328,12 @@ if __name__ == "__main__":
     # print(
     #     secure.publish_vulnerability_scan(
     #         tenantUrl="https://mcmp-learn.multicloud-ibm.com",
-    #         secureToken="xBY-7RXdXRM0ZY3dNg4oMz8WMAQKBBbIf1vE_iLFYDW2tJMM43N0i1aKK4iVX4bQ"
+    #         secureToken=""
     #     )
     # )
     print(
         secure.publish_secure_licenses(
             tenant_url="https://mcmp-learn.multicloud-ibm.com",
-            secureToken="xBY-7RXdXRM0ZY3dNg4oMz8WMAQKBBbIf1vE_iLFYDW2tJMM43N0i1aKK4iVX4bQ"
+            secureToken=""
         )
     )

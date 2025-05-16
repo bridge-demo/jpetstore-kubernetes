@@ -31,6 +31,8 @@ class Tester:
             subprocess.getoutput(command)
             endTime = datetime.datetime.now()
             self.durationSeconds =int( ( endTime - startTime ).seconds)
+            if self.durationSeconds <= 0:
+                self.durationSeconds = 1
             self.status = "passed"
             self.passed = 20
             self.failed = 0 
@@ -52,7 +54,7 @@ class Tester:
 
     def publish_test( self, tenantUrl, testToken,  technicalServiceName="RT_petstore_on_aks_jenkins", testEngine="ant", bugs=randint(0,7), codeCoverage=randint(30,100), codeSmells=randint(0,8), hostName="13.82.103.214:8080", env="production",   releaseName=f"release-2023.{time.strftime('%m.%d')}", skipped=0,   ):
       
-        runId = os.getenv("BUILD_ID", uuid.uuid4().__str__() )
+        runId = str(uuid.uuid4())
         tenantUrl = sanitazeTenantUrl(tenantUrl)
         endpoint = f"{tenantUrl}dash/api/test/v3/technical-services/tests/run/{runId}/status"
         params = {

@@ -20,6 +20,7 @@ class Builder:
         self.commit = os.getenv("COMMIT_NUMBER", commitNumber)
         self.details = details
         self.duration = -1
+        self.durationInNano = -1
         self.endpoint_hostname = os.getenv("JENKINS_URL", hostname)
         self.endpoint_technical_service_id = hostname.replace(":","_")
         self.event_type = "push"
@@ -70,13 +71,13 @@ class Builder:
         """
         This function will return 'None' if completed successfully, otherwise an error string will be return
         """
-        os.system( "docker logout" )
+        os.system( "sudo docker logout" )
 
 
     def create_docker_image(self,  imageName="defaultName", dockerFileDirectory=".",   ):
 
         self.built_at = datetime.datetime.utcnow().isoformat("T") + "Z"
-        buildCommand = f"docker build -t {imageName} {dockerFileDirectory}"
+        buildCommand = f"sudo docker build -t {imageName} {dockerFileDirectory}"
         self.details = f"Image -> {imageName}"
         try:
             startTime = datetime.datetime.now()
@@ -87,6 +88,7 @@ class Builder:
                 self.build_status = "failed"
                 endTime = datetime.datetime.now()
                 self.duration = (endTime - startTime).microseconds * 10000
+                self.durationInNano = self.duration
                 return {
                 "buildDuration": self.duration,
                 "buildStatus" : self.build_status
@@ -95,6 +97,7 @@ class Builder:
             endTime = datetime.datetime.now()
             self.build_status = "passed"
             self.duration = (endTime - startTime).microseconds * 1000
+            self.durationInNano = self.duration
             return {
                 "buildDuration": self.duration,
                 "buildStatus" : self.build_status
@@ -107,6 +110,7 @@ class Builder:
             )
             self.build_status = "failed"
             self.duration = (endTime - startTime).microseconds * 10000
+            self.durationInNano = self.duration
             return {
                 "buildDuration": endTime - startTime,
                 "buildStatus" : self.build_status
@@ -119,7 +123,7 @@ class Builder:
         This function will return 'None' if completed successfully, otherwise an error string will be return
         """
 
-        pushCommand = f"docker push {fullImangeName}"
+        pushCommand = f"sudo docker push {fullImangeName}"
 
         try:
             returnCode = os.system(pushCommand)
@@ -139,7 +143,7 @@ class Builder:
         This function will return 'None' if completed successfully, otherwise an error string will be return
         """
 
-        loginCommand = f"docker login -u {dockerUser} -p {dockerPassoword}"
+        loginCommand = f"sudo docker login -u {dockerUser} -p {dockerPassoword}"
 
         # loginCommand = loginCommand.split(" ")
 
@@ -166,7 +170,7 @@ if __name__ == "__main__":
     LOGGER.info(
         buildtest.__dict__
     )
-    LOGGER.info(
-        buildtest.post_data_into_tenant(tenantUrl="https://mcmp-explore-jamesxavier2-mar16-220316202344.multicloud-ibm.com/", buildToken="")
-    )
+    # LOGGER.info(
+    #     buildtest.post_data_into_tenant(tenantUrl="https://mcmp-explore-jamesxavier2-mar16-220316202344.multicloud-ibm.com/", buildToken="")
+    # )
 

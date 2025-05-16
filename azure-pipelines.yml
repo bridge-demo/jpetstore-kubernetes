@@ -1,0 +1,39 @@
+# Docker
+# Build a Docker image
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+
+
+resources:
+  webhooks:
+    - webhook: petstore_build
+      connection: petstore_build
+
+variables:
+  tag: '$(Build.BuildId)'
+
+stages:
+- stage: Build
+  displayName: Build image
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+
+
+
+    - task: Docker@2
+      displayName: Build and push petstore web
+      inputs:
+        containerRegistry: 'mcmpdemo'
+        repository: 'mcmpdemo/jpetstore-web'
+        command: 'buildAndPush'
+        Dockerfile: '**/jpetstore/Dockerfile'
+
+    - task: PythonScript@0
+      inputs:
+        scriptSource: 'filePath'
+        scriptPath: 'pipeline-python/demo_DI_publish.py'
+        arguments: '--tenant https://learnmodernops-api.bridge.kyndryl.com/ --build_token $(BUILD_TOKEN) '

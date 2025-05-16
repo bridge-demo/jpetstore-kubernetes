@@ -34,8 +34,13 @@ def parser( validate_parameters = False ) -> dict:
     parser.add_argument( '-tt', "--test-token",  help='<Required> DevOps intellingence test token"  ', required=True )
     parser.add_argument( '-dt', "--deploy-token",  help='<Required> DevOps intellingence deploy token"  ', required=True )
     parser.add_argument( '-st', "--secure-token",  help='<Required> DevOps intellingence secure token"  ', required=True )
-    parser.add_argument( '-on', "--order-number",  help='<Required> Order number of the petstore infrastructure provisined"  ', required=False, default="" ) #can be optional for the changes triggered from github
-    parser.add_argument( '-ff', "--fulfillment-id",  help='<Required> Fulfillment id of the petstore infrastructure provisined"  ', required=False, default="" ) #can be optional for the changes triggered from github
+    parser.add_argument( '-dbu', '--db-user', help='<Required> DB User', required=True)
+    parser.add_argument( '-dbp', '--db-password', help='<Required> DB Password', required=True)
+    parser.add_argument( '-kc', '--kube-config', help='<Required> Kube Config', required=True)
+    parser.add_argument( '-fn', '--fqdn', help='<Required> FQDN', required=True)
+    parser.add_argument( '-dbur', '--db-url', help='<Required> DB url', required=True)
+    parser.add_argument( '-dbn', '--db-name', help='<Required> DB name', required=True)
+    parser.add_argument( '-rg', '--resource-group', help='<Required> Resource group', required=True)
 
     values = parser.parse_args()
     if validate_parameters:
@@ -55,48 +60,48 @@ def main():
     tenantAPIUrl = sanitazeTenantUrl(tenantUrl, urlType='api')
     
     
-    try:
-        LOGGER.info( f'Processing: URL: {tenantAPIUrl} - API Key: {pipelineParams["user_api_key"]} - Order Number: {pipelineParams["order_number"]} - User ID: {pipelineParams["user_id"]}' )
-        status, resource_group_name, db_name = is_db_ready(tenantApiUrl=tenantAPIUrl, tenantUserApikey=pipelineParams['user_api_key'], tenantUserId=pipelineParams['user_id'], orderNumber=pipelineParams["order_number"])
-        LOGGER.info(f"IS DB READY? Status: {status} - RG: {resource_group_name} - DB Name: {db_name}")
+    # try:
+    #     LOGGER.info( f'Processing: URL: {tenantAPIUrl} - API Key: {pipelineParams["user_api_key"]} - Order Number: {pipelineParams["order_number"]} - User ID: {pipelineParams["user_id"]}' )
+    #     status, resource_group_name, db_name = is_db_ready(tenantApiUrl=tenantAPIUrl, tenantUserApikey=pipelineParams['user_api_key'], tenantUserId=pipelineParams['user_id'], orderNumber=pipelineParams["order_number"])
+    #     LOGGER.info(f"IS DB READY? Status: {status} - RG: {resource_group_name} - DB Name: {db_name}")
     
-        if status:
-            #petstore_details = read_petstore_order(tenantApiUrl=tenantUrl, tenantUserId=pipelineParams['user_id'], tenantUserApikey=pipelineParams['user_api_key'], orderNumber=pipelineParams['order_number'], createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config")
+    #     if status:
+    #         #petstore_details = read_petstore_order(tenantApiUrl=tenantUrl, tenantUserId=pipelineParams['user_id'], tenantUserApikey=pipelineParams['user_api_key'], orderNumber=pipelineParams['order_number'], createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config")
         
-            LOGGER.info("DB Details")
-            LOGGER.info("petstore_details")
+    #         LOGGER.info("DB Details")
+    #         LOGGER.info("petstore_details")
             
-            if resource_group_name and db_name: 
+    #         if resource_group_name and db_name: 
             
-                change_secure_transport_flag(resource_group_name=resource_group_name, mysql_server_name=db_name)
+    #             change_secure_transport_flag(resource_group_name=resource_group_name, mysql_server_name=db_name)
                 
-                time.sleep(60)
+    #             time.sleep(60)
                 
-                change_public_network_access(resource_group_name=resource_group_name, mysql_server_name=db_name)
+    #             change_public_network_access(resource_group_name=resource_group_name, mysql_server_name=db_name)
                 
-                time.sleep(60)
-        else:
-            logging.info(
-            f"""The Services are not ready yet!!  """)
+    #             time.sleep(60)
+    #     else:
+    #         logging.info(
+    #         f"""The Services are not ready yet!!  """)
             
-    except Exception as error:
-        logging.error(
-            f"""Error:  {error}  """)
+    # except Exception as error:
+    #     logging.error(
+    #         f"""Error:  {error}  """)
         
-    LOGGER.info( json.dumps( pipelineParams, indent=3 ) )
-    buildUrl =  os.getenv( "BUILD_URL", "http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console" )
+    # LOGGER.info( json.dumps( pipelineParams, indent=3 ) )
+    # buildUrl =  os.getenv( "BUILD_URL", "http://13.82.103.214:8080/view/RedThread/job/redthread-petstore-deployment-template/71/console" )
 
         
-    error = update_completed_order_status( 
-        tenantUrl=tenantUrl, 
-        userID=pipelineParams['user_id'], 
-        userApiKey=pipelineParams['user_api_key'], 
-        orderNumber=pipelineParams["order_number"],   
-        fulfillmentId=pipelineParams["fulfillment_id"],
-        buildUrl=buildUrl
-    )
-    if error:
-        LOGGER.error("Fail to update order status")
+    # error = update_completed_order_status( 
+    #     tenantUrl=tenantUrl, 
+    #     userID=pipelineParams['user_id'], 
+    #     userApiKey=pipelineParams['user_api_key'], 
+    #     orderNumber=pipelineParams["order_number"],   
+    #     fulfillmentId=pipelineParams["fulfillment_id"],
+    #     buildUrl=buildUrl
+    # )
+    # if error:
+    #     LOGGER.error("Fail to update order status")
 
     petstore_pipeline(params=pipelineParams)
         
@@ -186,7 +191,8 @@ def petstore_pipeline(  params: dict  ):
         tenantApiURL=tenantApiUrl,
         orderNumber=params["order_number"],
         deployToken=params["deploy_token"],
-        publishToTenant=True
+        publishToTenant=True,
+        params= params
      )
 
     #secure_Petstore(tenantUrl=params["tenant_url"], secureToken=params["secure_token"])
@@ -302,7 +308,7 @@ def test_petstore( tenantUrl, testToken, technicalServiceName ):
         LOGGER.info(tester.__dict__)
 
     
-def deploy_Petstore( tenantUserID,  tenantUserApiKey, tenantApiURL,  orderNumber, deployToken="", imageTag="latest", dockerUser="mcmpdemo",publishToTenant=False ):
+def deploy_Petstore( tenantUserID,  tenantUserApiKey, tenantApiURL,  orderNumber, deployToken="", imageTag="latest", dockerUser="mcmpdemo",publishToTenant=False, params={} ):
     deployment = Deploy()
     deployment.deploy_petstore (
         dockerUser=dockerUser,
@@ -310,7 +316,8 @@ def deploy_Petstore( tenantUserID,  tenantUserApiKey, tenantApiURL,  orderNumber
         tenantUserID=tenantUserID,
         tenantUserApiKey=tenantUserApiKey,
         tenantApi=tenantApiURL,
-        orderNumber=orderNumber
+        orderNumber=orderNumber,
+        params=params
     )
     tenantUrl = sanitazeTenantUrl(tenantApiURL)
 

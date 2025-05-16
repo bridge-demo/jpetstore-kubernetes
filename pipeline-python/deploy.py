@@ -35,7 +35,7 @@ class Deploy:
         self.release = release
 
 
-    def deploy_petstore(self, dockerUser, imageTag, tenantUserID, tenantUserApiKey, tenantApi, orderNumber, namespace="jppetstore", jenkinsHome=".." ):
+    def deploy_petstore(self, dockerUser, imageTag, tenantUserID, tenantUserApiKey, tenantApi, orderNumber, namespace="jppetstore", jenkinsHome="..", params={} ):
         """
         If fails return an error (string)
         """
@@ -43,13 +43,21 @@ class Deploy:
         self.creation_date = datetime.now(timezone.utc).isoformat(timespec='microseconds').replace('+00:00', 'Z')
         tenantApi = sanitazeTenantUrl( tenantApi, "api" )
 
-        petstore_details = read_petstore_order(
-            tenantApiUrl=tenantApi,
-            tenantUserId=tenantUserID,
-            tenantUserApikey=tenantUserApiKey,
-            orderNumber=orderNumber,
-            createKubeconfigFile=True
-        )       
+        # petstore_details = read_petstore_order(
+        #     tenantApiUrl=tenantApi,
+        #     tenantUserId=tenantUserID,
+        #     tenantUserApikey=tenantUserApiKey,
+        #     orderNumber=orderNumber,
+        #     createKubeconfigFile=True
+        # )
+        petstore_details = {
+            "db_user": params['db_user'],
+            "db_password": params['db_password'],
+            "fqdn": params['fqdn'],
+            "db_url": params['db_url'],
+            "db_name": params['db_name'],
+            "resource_group": params['resource_group']
+        }       
         
         startTime = datetime.now()
         try:
@@ -78,7 +86,7 @@ class Deploy:
         ##jenkins home needs to be repopath/helm/modernpets
         startTime = datetime.now()
 
-        kubeConfigExists = file_exists("tmp_kube_config")
+        kubeConfigExists = file_exists("./tmp_kube_config")
         if not kubeConfigExists:
             endTime = datetime.now()
             return {
@@ -86,7 +94,7 @@ class Deploy:
                 "deplouDuration": endTime - startTime
             }
 
-        cleanPetstore = f"kubectl delete job jpetstoredb --ignore-not-found -n {namespace} --kubeconfig tmp_kube_config".split(" ")
+        cleanPetstore = f"kubectl delete job jpetstoredb --ignore-not-found -n {namespace} --kubeconfig ./tmp_kube_config".split(" ")
         result = subprocess.run( cleanPetstore )
         if result.returncode != 0:
             LOGGER.error("Fail to delete petstore job ( deployment step 1 )")
@@ -118,7 +126,7 @@ class Deploy:
             LOGGER.error(result.stderr)
             raise Exception( result.args )
         
-        installNgnix = f"helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace --set controller.service.type=LoadBalancer --wait --kubeconfig tmp_kube_config".split(" ")
+        installNgnix = f"helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace --set controller.service.type=LoadBalancer --wait --kubeconfig ./tmp_kube_config".split(" ")
         result = subprocess.run( installNgnix )
         if result.returncode != 0:
             LOGGER.error(f"Fail to install ingress-nginx")

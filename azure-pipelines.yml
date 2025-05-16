@@ -21,8 +21,14 @@ variables:
   testToken: $(TEST_TOKEN)
   deployToken: $(DEPLOY_TOKEN)
   secureToken: $(SECURE_TOKEN)
-  orderNumber: $(ORDER_NUMBER)
-  fulfillmentId: $(FULFILLMENT_ID)
+  dbUser: $(DB_USER)
+  dbPassword: $(DB_PASS)
+  kubeConfig: $(KUBE_CONFIG)
+  fqdn: $(FQDN)
+  dbUrl: $(DB_URL)
+  dbName: $(DB_NAME)
+  resourceGroup: $(RESOURCE_GROUP)
+  
 
 stages:
 - stage: Build
@@ -47,10 +53,6 @@ stages:
         python3 -m pip install --upgrade pip
         python3 -m pip install -r ./petstore-catalog-deployment/requirements.txt
       displayName: 'Install dependencies'
-    # - script: |
-    #     sleep 150 # Timer for 2.5 minutes
-    #     echo "Script finished after 2.5 minutes"
-    #   displayName: 'Run script with timer'
     - script: |
-        python3 ./pipeline-python/pipeline-jenkins.py --github-token $(githubToken) --docker-user $(dockerUser) --docker-password $(dockerPassword) --tenant-url $(tenantUrl) --user-id $(userId) --user-api-key $(userApiKey) --build-token $(buildToken) --test-token $(testToken) --deploy-token $(deployToken) --secure-token $(secureToken) --order-number $(orderNumber) --fulfillment-id $(fulfillmentId)
+        python3 ./pipeline-python/pipeline-jenkins.py --github-token $(githubToken) --docker-user $(dockerUser) --docker-password $(dockerPassword) --tenant-url $(tenantUrl) --user-id $(userId) --user-api-key $(userApiKey) --build-token $(buildToken) --test-token $(testToken) --deploy-token $(deployToken) --secure-token $(secureToken) --db-user $(dbUser) --db-password $(dbPassword) --kube-config $(kubeConfig) --fqdn $(fqdn) --db-url $dbUrl --db-name $(dbName) --resource-group $(resourceGroup)
       displayName: 'Run Python script'

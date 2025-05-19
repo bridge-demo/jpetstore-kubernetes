@@ -3,9 +3,9 @@ import logging
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger("Monitoring")
 
-def deploy_petstore_monitoring( kubeconfigPath="./tmp_kube_config" ) -> bool:
+def deploy_petstore_monitoring( kubeconfigPath="./tmp_kube_config.yaml" ) -> bool:
     LOGGER.info("Deploy monioring...")
-    error = create_kubernetes_namespace(kubeconfigPath="./tmp_kube_config", namespace="monitoring")
+    error = create_kubernetes_namespace(kubeconfigPath="./tmp_kube_config.yaml", namespace="monitoring")
     if error:
         
         return False

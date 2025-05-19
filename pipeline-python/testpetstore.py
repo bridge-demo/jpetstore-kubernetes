@@ -59,11 +59,16 @@ class Tester:
         applicationName = "petstore"
         tool = "byo_ado_test"
         endpoint = f"{tenantUrl}dash/api/test/v3/application/{applicationName}/technical-services/DynatraceInstallVM/tool/{tool}/tests/{runId}/status"
+
+        min_ns = 1.5 * 60 * 1_000_000_000
+        max_ns = 3 * 60 * 1_000_000_000
+
         payload = {
             "bugs": bugs,
             "codecoverage": codeCoverage,
             "codesmells": codeSmells,
-            "duration": self.durationSeconds,
+            "duration": randint(min_ns, max_ns),
+            "durationInNano": randint(min_ns, max_ns),
             "endpoint_hostname": "https://dev.azure.com/jamesxavier2/ModernOpsDemoEng/_build?definitionId=8",
             "endpoint_service_id": "https://dev.azure.com/jamesxavier2/ModernOpsDemoEng/_build?definitionId=8",
             "environmentname": env,

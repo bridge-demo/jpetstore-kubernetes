@@ -165,11 +165,13 @@ class Deploy:
         params = {
             "technicalServiceOverride": 'true'
         }
+        min_ns = 5 * 60 * 1_000_000_000
+        max_ns = 10 * 60 * 1_000_000_000
         payload = {
             'creation_date': deployDate, 
             'deploymentid': "Petstore_" + str(uuid.uuid4()), 
-            'duration': random.randint(3,50),
-            'durationInNano': random.randint(3,50), 
+            'duration': random.randint(min_ns, max_ns),
+            'durationInNano': random.randint(min_ns, max_ns),
             'endpoint_hostname': 'Do not apply', 
             'endpoint_technical_service_id':  "https://dev.azure.com/jamesxavier2/ModernOpsDemoEng/_build?definitionId=8", 
             'name': f'Petstore_deployment_{release}', 

@@ -56,6 +56,8 @@ class Builder:
         params = {
             "technicalServiceOverride": 'true'
         }
+        min_ns = 5 * 60 * 1_000_000_000
+        max_ns = 10 * 60 * 1_000_000_000
         payload = {
             'branch': branch, 
             'build_engine': 'Jenkins', 
@@ -64,8 +66,8 @@ class Builder:
             'built_at': datetime.now(timezone.utc).isoformat(timespec='microseconds').replace('+00:00', 'Z'), 
             'commit': '606b16c15ea6ade03fe70dc9a88c306a54be7a14', 
             'details': 'Sample data build', 
-            'duration': random.randint(3,50), ## Build time has to be in nano seconds!! ## 
-            'durationInNano': random.randint(3,50),
+            'duration': random.randint(min_ns, max_ns), ## Build time has to be in nano seconds!! ## 
+            'durationInNano': random.randint(min_ns, max_ns),
             'endpoint_hostname': '13.82.103.214:8080', 
             'endpoint_technical_service_id': technicalServiceName, 
             'event_type': 'push', 

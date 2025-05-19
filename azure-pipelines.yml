@@ -25,7 +25,7 @@ variables:
   dbUser: $(DB_USER)
   dbPassword: $(DB_PASS)
   # kubeConfig: $(KUBE_CONFIG)
-  fq: $(FQ)
+  fq: akscluster-ozdorhhx.hcp.eastus.azmk8s.io
   dbUrl: $(DB_URL)
   dbName: $(DB_NAME)
   resourceGroup: $(RESOURCE_GROUP)

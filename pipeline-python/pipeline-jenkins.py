@@ -38,7 +38,7 @@ def parser( validate_parameters = False ) -> dict:
     parser.add_argument( '-dbp', '--db-password', help='<Required> DB Password', required=True)
     # parser.add_argument( '-kc', '--kube-config', help='<Required> Kube Config', required=True)
     parser.add_argument( '-fn', '--fqdn', help='<Required> FQDN', required=True)
-    parser.add_argument( '-dbur', '--db-url', help='<Required> DB url', required=True)
+    parser.add_argument( '-db', '--db', help='<Required> DB url', required=True)
     parser.add_argument( '-dbn', '--db-name', help='<Required> DB name', required=True)
     parser.add_argument( '-rg', '--resource-group', help='<Required> Resource group', required=True)
 

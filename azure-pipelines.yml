@@ -26,7 +26,7 @@ variables:
   dbPassword: $(DB_PASS)
   # kubeConfig: $(KUBE_CONFIG)
   fq: akscluster-ozdorhhx.hcp.eastus.azmk8s.io
-  dbUrl: mysqldb-18d315b1e2c3f3b1e7ca6b0c4e229048.mysql.database.azure.com
+  db: mysqldb-18d315b1e2c3f3b1e7ca6b0c4e229048.mysql.database.azure.com
   dbName: mysqldb-18d315b1e2c3f3b1e7ca6b0c4e229048
   resourceGroup: rg0802-343ea888-b4ea-93b6-e17d-5abd79a370ec
   
@@ -46,7 +46,7 @@ stages:
         addToPath: true
     - script: |
         echo "FQDN is: $(fq)"
-        echo "DB_URL is: $(dbUrl)"
+        echo "DB_URL is: $(db)"
       displayName: 'Echo VARS'
     - script: |
         chmod +x ./pipeline-jenkins/pipeline-jenkins.sh
@@ -56,5 +56,5 @@ stages:
         python3 -m pip install -r ./petstore-catalog-deployment/requirements.txt
       displayName: 'Install dependencies'
     - script: |
-        python3 ./pipeline-python/pipeline-jenkins.py --github-token $(githubToken) --docker-user $(dockerUser) --docker-password $(dockerPassword) --tenant-url $(tenantUrl) --user-id $(userId) --user-api-key $(userApiKey) --build-token $(buildToken) --test-token $(testToken) --deploy-token $(deployToken) --secure-token $(secureToken) --db-user $(dbUser) --db-password $(dbPassword) --fqdn $(fq) --db-url $dbUrl --db-name $(dbName) --resource-group $(resourceGroup)
+        python3 ./pipeline-python/pipeline-jenkins.py --github-token $(githubToken) --docker-user $(dockerUser) --docker-password $(dockerPassword) --tenant-url $(tenantUrl) --user-id $(userId) --user-api-key $(userApiKey) --build-token $(buildToken) --test-token $(testToken) --deploy-token $(deployToken) --secure-token $(secureToken) --db-user $(dbUser) --db-password $(dbPassword) --fqdn $(fq) --db $db --db-name $(dbName) --resource-group $(resourceGroup)
       displayName: 'Run Python script'

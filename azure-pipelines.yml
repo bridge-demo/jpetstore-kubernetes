@@ -26,9 +26,9 @@ variables:
   dbPassword: $(DB_PASS)
   # kubeConfig: $(KUBE_CONFIG)
   fq: akscluster-ozdorhhx.hcp.eastus.azmk8s.io
-  dbUrl: $(DB_URL)
-  dbName: $(DB_NAME)
-  resourceGroup: $(RESOURCE_GROUP)
+  dbUrl: mysqldb-18d315b1e2c3f3b1e7ca6b0c4e229048.mysql.database.azure.com
+  dbName: mysqldb-18d315b1e2c3f3b1e7ca6b0c4e229048
+  resourceGroup: rg0802-343ea888-b4ea-93b6-e17d-5abd79a370ec
   
 
 stages:

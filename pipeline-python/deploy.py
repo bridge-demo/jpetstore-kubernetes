@@ -54,7 +54,7 @@ class Deploy:
             "db_user": params['db_user'],
             "db_password": params['db_password'],
             "fqdn": params['fqdn'],
-            "db_url": params['db_url'],
+            "db_url": params['db'],
             "db_name": params['db_name'],
             "resource_group": params['resource_group']
         }       

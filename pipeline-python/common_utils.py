@@ -77,7 +77,7 @@ def file_exists(path:str)-> bool:
     fileExists = os.path.exists("./tmp_kube_config")
     if not fileExists:
         print(f"Error: Kube config ('tmp_kube_config') not found in local path")
-        localFiles = subprocess.getoutput("ls")
+        localFiles = subprocess.getoutput("cd ./pipeline-python/; ls")
         print(f"ls output:\n{localFiles}")
     return fileExists
 

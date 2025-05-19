@@ -189,7 +189,7 @@ def petstore_pipeline(  params: dict  ):
         tenantUserID=params["user_id"],
         tenantUserApiKey=params["user_api_key"],
         tenantApiURL=tenantApiUrl,
-        orderNumber=params["order_number"],
+        orderNumber="",
         deployToken=params["deploy_token"],
         publishToTenant=True,
         params= params
@@ -308,7 +308,7 @@ def test_petstore( tenantUrl, testToken, technicalServiceName ):
         LOGGER.info(tester.__dict__)
 
     
-def deploy_Petstore( tenantUserID,  tenantUserApiKey, tenantApiURL,  orderNumber, deployToken="", imageTag="latest", dockerUser="mcmpdemo",publishToTenant=False, params={} ):
+def deploy_Petstore( tenantUserID,  tenantUserApiKey, tenantApiURL,  orderNumber="", deployToken="", imageTag="latest", dockerUser="mcmpdemo",publishToTenant=False, params={} ):
     deployment = Deploy()
     deployment.deploy_petstore (
         dockerUser=dockerUser,

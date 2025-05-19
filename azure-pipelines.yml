@@ -46,6 +46,7 @@ stages:
         addToPath: true
     - script: |
         echo "FQDN is: $(fq)"
+        echo "DB_URL is: $(dbUrl)"
       displayName: 'Echo VARS'
     - script: |
         chmod +x ./pipeline-jenkins/pipeline-jenkins.sh

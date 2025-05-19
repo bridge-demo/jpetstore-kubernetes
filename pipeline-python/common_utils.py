@@ -74,7 +74,7 @@ def sanitazeTenantUrl(tenantUrl:str, urlType:str ="url"):
 
 
 def file_exists(path:str)-> bool:
-    fileExists = os.path.exists("./tmp_kube_config.yaml")
+    fileExists = os.path.exists("./pipeline-python/tmp_kube_config.yaml")
     if not fileExists:
         print(f"Error: Kube config ('tmp_kube_config') not found in local path")
         localFiles = subprocess.getoutput("cd ./pipeline-python/; ls")

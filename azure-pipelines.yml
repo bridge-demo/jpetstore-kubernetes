@@ -46,6 +46,7 @@ stages:
         addToPath: true
     - script: |
         echo $(orderNumber) $(fulfillmentId)
+        echo "FQDN is: $(fqdn)"
       displayName: 'Echo VARS'
     - script: |
         chmod +x ./pipeline-jenkins/pipeline-jenkins.sh

@@ -58,7 +58,7 @@ class Tester:
         tenantUrl = sanitazeTenantUrl(tenantUrl)
         applicationName = "petstore"
         tool = "byo_ado_test"
-        endpoint = f"{tenantUrl}dash/api/test/v3/application/{applicationName}/technical-services/DynatraceInstallVM/tool/{tool}/tests/{runId}/status"
+        endpoint = f"{tenantUrl}dash/api/test/v3/application/{applicationName}/technical-services/PetstorePattern/tool/{tool}/tests/{runId}/status"
         payload = {
             "bugs": bugs,
             "codecoverage": codeCoverage,

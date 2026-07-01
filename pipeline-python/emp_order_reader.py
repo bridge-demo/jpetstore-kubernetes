@@ -8,6 +8,17 @@ LOGGER = logging.getLogger("OrderReader")
 
 ##TODO: We can wrap all this into a orderReader class
 
+# WARNING: Hardcoded credentials - BAD PRACTICE (for secret scanning test only)
+MONGO_URI = "mongodb+srv://admin:P@ssw0rd123!@cluster0.acme.mongodb.net/mydb?retryWrites=true&w=majority"
+
+def connect_db():
+    client = pymongo.MongoClient(MONGO_URI)
+    return client["mydb"]
+
+def get_data():
+    db = connect_db()
+    return list(db["items"].find({}))
+
 def get_order_details(tenant_user_id, tenant_system_user_api_key, order_number, tenant_api_url, maxRetries=4, currentReties=0):
     """
     Returns a dictionary with 'db_password', 'service_instance_id' keys.

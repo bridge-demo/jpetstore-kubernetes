@@ -2,7 +2,7 @@ import random, uuid, requests, argparse, datetime, time, os
 import logging
 import subprocess
 
-from common_utils import DependencyLicenseTemplate,  sanitazeTenantUrl, make_web_request, LICENSES, nanoseconds_to_seconds, nanoseconds_to_microseconds
+from common_utils import DependencyLicenseTemplate,  sanitazeTenantUrl, make_web_request, LICENSES, nanoseconds_to_seconds, nanoseconds_to_microseconds, get_bearer_token
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger('vra_di_publisher')
@@ -291,8 +291,8 @@ def try_web_request( url, requestMethod=requests.get, LOGGER=logging.getLogger(_
 
 def update_post_provisioning_hook( tenantApiUrl, userID, apikey, orderID, fulfillmentID, status="Completed", endProcessIfFails=False ):
 
-    tenantApiUrl = sanitazeTenantUrl( tenantApiUrl, urlType="api" )
-    ENDPOINT = f"{tenantApiUrl}api/fulfillment/prov_posthook_response"
+    tenantApiUrl = sanitazeTenantUrl( tenantApiUrl)
+    ENDPOINT = f"{tenantApiUrl}consume/api/fulfillment/prov_posthook_response"
 
     payload = {
         "orderNumber": orderID,
@@ -303,11 +303,11 @@ def update_post_provisioning_hook( tenantApiUrl, userID, apikey, orderID, fulfil
         "additionalMessage": "",
         "forceUpdate": True
     }
+    
+    bearerToken = get_bearer_token(host=tenantApiUrl, api_key=apikey, subject_id=userID)
     headers = {
-        'username': userID,
-        'apikey': apikey,
-        'Content-Type': 'application/json'
-    }
+            'Authorization': f"Bearer {bearerToken}",
+        }
     response, _ = try_web_request( requestMethod=requests.post, url=ENDPOINT, headers=headers, json=payload)
     if response:
         LOGGER.info(f"Successfully updated order {orderID} in {tenantApiUrl}")

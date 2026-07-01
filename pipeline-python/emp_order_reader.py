@@ -13,12 +13,12 @@ def get_order_details(tenant_user_id, tenant_system_user_api_key, order_number, 
     Returns a dictionary with 'db_password', 'service_instance_id' keys.
     Ends the process if an error occurs
     """
-    LOGGER.info("Reading order Details")
-    ENDPOINT = f"{tenant_api_url}v5/api/orders/{order_number}/detail"
+    LOGGER.info("Reading order Details -- %s ", tenant_api_url)
+    ENDPOINT = f"{tenant_api_url}consume/v5/api/orders/{order_number}/detail"
+    bearerToken = common_utils.get_bearer_token(host=tenant_api_url, api_key=tenant_system_user_api_key, subject_id=tenant_user_id)
     headers = {
-        "username": tenant_user_id, 
-        "apikey": tenant_system_user_api_key
-    }
+            'Authorization': f"Bearer {bearerToken}",
+        }
     response, isSuccessfulResponse, _  = common_utils.make_web_request( requestMethod=requests.get, headers=headers, url=ENDPOINT )
     
     serverTimeout = response.status_code == 504
@@ -42,7 +42,9 @@ def get_order_details(tenant_user_id, tenant_system_user_api_key, order_number, 
         LOGGER.error(f"Error: Expecting a json response from {ENDPOINT} and got:\n{response.text}")
         exit(1)
     data = response.json()
+    print("data is ------",data)
     details = parse_petstore_order_details( data )
+    print("details is ------",details)
     LOGGER.info("Done reading order Details")
     return details
 
@@ -58,6 +60,7 @@ def parse_petstore_order_details(jsonData):
     """
     try:
         data = {}
+        print("----json data is ----",jsonData)
         data["service_instance_id"] = jsonData["data"]["orderItems"][0]["services"][0]["serviceInventoryId"]
         
         #Get the database password
@@ -81,11 +84,16 @@ def parse_petstore_order_details(jsonData):
 def get_petstore_service_instance_details( tenant_system_user_id, tenant_system_user_api_key, service_instance_id, tenant_api_url, maxRetries=4, currentReties=0 ):
     
     LOGGER.info("Reading service instace details")
-    ENDPOINT = f"{tenant_api_url}v3/api/services/azure/{service_instance_id}"
+    print("service id is ---",service_instance_id)
+    ENDPOINT = f"{tenant_api_url}consume/v3/api/services/azure/{service_instance_id}"
+    bearerToken = common_utils.get_bearer_token(host=tenant_api_url, api_key=tenant_system_user_api_key, subject_id=tenant_system_user_id)
     headers = {
-        "username": tenant_system_user_id, 
-        "apikey": tenant_system_user_api_key
-    }
+            'Authorization': f"Bearer {bearerToken}",
+        }
+    # headers = {
+    #     "username": tenant_system_user_id, 
+    #     "apikey": tenant_system_user_api_key
+    # }
     response, isSuccessfulResponse, _  = common_utils.make_web_request( requestMethod=requests.get, url=ENDPOINT, headers=headers )
     timeOutError = response.status_code == 504
     if timeOutError:
@@ -153,7 +161,8 @@ def parse_service_instance_details( jsonData ):
     }
 
 def read_petstore_order( tenantApiUrl, tenantUserId, tenantUserApikey, orderNumber, createKubeconfigFile=False, kubeconfigFileName="tmp_kube_config" ):
-    tenantApiUrl = common_utils.sanitazeTenantUrl(tenantApiUrl, urlType="api")
+    print("tenantApiUrl----",tenantApiUrl)
+    tenantApiUrl = common_utils.sanitazeTenantUrl(tenantApiUrl)
     orderDetails = get_order_details(
         tenant_api_url=tenantApiUrl,
         tenant_system_user_api_key=tenantUserApikey,
@@ -172,7 +181,9 @@ def read_petstore_order( tenantApiUrl, tenantUserId, tenantUserApikey, orderNumb
         tmp_file = open(kubeconfigFileName, "w")
         tmp_file.write(serviceDetails['tmp_kube_config'])
         tmp_file.close()
-
+    print("--orderDetails--",orderDetails)
+    print("inbetween")
+    print("--serviceDetails--",serviceDetails)
     return {
             "tmp_kube_config": serviceDetails['tmp_kube_config'],
             "fqdn": serviceDetails['fqdn'],

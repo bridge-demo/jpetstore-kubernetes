@@ -173,13 +173,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          kube_config_input='${{ github.event.inputs.kube_config }}'
-          kube_config_input="${kube_config_input#\"}"
-          kube_config_input="${kube_config_input%\"}"
-          if [[ "$kube_config_input" == *\\n* ]]; then
-            printf '%b' "$kube_config_input" > tmp_kube_config
-          else
-            printf '%s' "$kube_config_input" > tmp_kube_config
+          printf '%s\n' "${{ github.event.inputs.kube_config }}" > tmp_kube_config
+          if grep -q '"kube_config"' tmp_kube_config || grep -q '"value"' tmp_kube_config; then
+            echo "Invalid kube_config input. Paste only: terraform output -raw kube_config"
+            exit 1
           fi
           printf '%s' "${{ github.event.inputs.cluster_fqdn }}" > fqdn
           printf '%s' "${{ github.event.inputs.db_url }}" > db_url

@@ -173,10 +173,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          printf '%s\n' "${{ github.event.inputs.kube_config }}" > tmp_kube_config
-          if grep -q '"kube_config"' tmp_kube_config || grep -q '"value"' tmp_kube_config; then
-            echo "Invalid kube_config input. Paste only: terraform output -raw kube_config"
-            exit 1
+          kube_config_input='${{ github.event.inputs.kube_config }}'
+
+          # Try base64 first (single-line input), then fallback to direct text/escaped newlines.
+          if printf '%s' "$kube_config_input" | base64 -d > tmp_kube_config 2>/dev/null \
+            && kubectl config view --kubeconfig tmp_kube_config >/dev/null 2>&1; then
+            echo "kube_config parsed as base64"
+          else
+            if [[ "$kube_config_input" == *\\n* ]]; then
+              printf '%b' "$kube_config_input" > tmp_kube_config
+            else
+              printf '%s\n' "$kube_config_input" > tmp_kube_config
+            fi
+            kubectl config view --kubeconfig tmp_kube_config >/dev/null || {
+              echo "Invalid kube_config input. Paste raw kubeconfig text or base64 kubeconfig."
+              exit 1
+            }
           fi
           printf '%s' "${{ github.event.inputs.cluster_fqdn }}" > fqdn
           printf '%s' "${{ github.event.inputs.db_url }}" > db_url

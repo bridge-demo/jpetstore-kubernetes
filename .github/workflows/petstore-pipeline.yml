@@ -171,25 +171,66 @@ jobs:
 
       - name: Prepare runtime files from Terraform outputs
         shell: bash
+        env:
+          KUBE_CONFIG_INPUT: ${{ github.event.inputs.kube_config }}
         run: |
           set -euo pipefail
-          kube_config_input='${{ github.event.inputs.kube_config }}'
+          python - <<'PY'
+          import base64
+          import json
+          import os
+          import re
 
-          # Try base64 first (single-line input), then fallback to direct text/escaped newlines.
-          if printf '%s' "$kube_config_input" | base64 -d > tmp_kube_config 2>/dev/null \
-            && kubectl config view --kubeconfig tmp_kube_config >/dev/null 2>&1; then
-            echo "kube_config parsed as base64"
-          else
-            if [[ "$kube_config_input" == *\\n* ]]; then
-              printf '%b' "$kube_config_input" > tmp_kube_config
-            else
-              printf '%s\n' "$kube_config_input" > tmp_kube_config
-            fi
-            kubectl config view --kubeconfig tmp_kube_config >/dev/null || {
-              echo "Invalid kube_config input. Paste raw kubeconfig text or base64 kubeconfig."
-              exit 1
-            }
-          fi
+          raw = os.environ.get("KUBE_CONFIG_INPUT", "")
+          text = raw.strip()
+
+          # Terraform JSON/object wrapper fallback: extract value field if present.
+          if '"value"' in text and text.lstrip().startswith("{"):
+              m = re.search(r'"value"\s*:\s*"(.*)"\s*,\s*"type"', text, re.S)
+              if m:
+                  text = m.group(1)
+
+          # Remove one pair of outer quotes if present.
+          if len(text) >= 2 and text[0] == '"' and text[-1] == '"':
+              text = text[1:-1]
+
+          candidates = []
+
+          # Candidate 1: base64 decode (single-line safe for UI inputs).
+          try:
+              decoded = base64.b64decode(text, validate=True).decode("utf-8")
+              candidates.append(decoded)
+          except Exception:
+              pass
+
+          # Candidate 2: escaped newlines from JSON/string transports.
+          if "\\n" in text or '\\"' in text:
+              try:
+                  wrapped = text if (text.startswith('"') and text.endswith('"')) else f'"{text}"'
+                  candidates.append(json.loads(wrapped))
+              except Exception:
+                  candidates.append(text.replace("\\n", "\n").replace('\\"', '"'))
+
+          # Candidate 3: raw pasted kubeconfig.
+          candidates.append(text)
+
+          def looks_like_kubeconfig(s: str) -> bool:
+              return (
+                  "apiVersion:" in s
+                  and "clusters:" in s
+                  and "users:" in s
+                  and "current-context:" in s
+              )
+
+          selected = next((c for c in candidates if looks_like_kubeconfig(c)), candidates[-1])
+          with open("tmp_kube_config", "w", encoding="utf-8", newline="\n") as f:
+              f.write(selected if selected.endswith("\n") else selected + "\n")
+          PY
+
+          kubectl config view --kubeconfig tmp_kube_config >/dev/null || {
+            echo "Invalid kube_config input. Paste raw kubeconfig text, base64 kubeconfig, or terraform JSON value blob."
+            exit 1
+          }
           printf '%s' "${{ github.event.inputs.cluster_fqdn }}" > fqdn
           printf '%s' "${{ github.event.inputs.db_url }}" > db_url
           printf '%s' "${{ github.event.inputs.db_user }}@${{ github.event.inputs.db_url }}" > db_user

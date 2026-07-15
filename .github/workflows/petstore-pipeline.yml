@@ -1,0 +1,228 @@
+name: Deploy Petstore To Existing AKS
+
+# Controls when the action will run.
+on:
+  workflow_dispatch:
+    inputs:
+      cluster_fqdn:
+        description: "AKS DNS zone from Terraform output"
+        required: true
+        type: string
+      db_url:
+        description: "MySQL FQDN from Terraform output"
+        required: true
+        type: string
+      db_user:
+        description: "MySQL admin user from Terraform output"
+        required: true
+        type: string
+      kube_config:
+        description: "Kubeconfig from Terraform output"
+        required: true
+        type: string
+      db_password:
+        description: "Database password from Terraform output"
+        required: true
+        type: string
+      image_tag:
+        description: "Container image tag to deploy"
+        required: false
+        default: "latest"
+        type: string
+
+# All the environment variables are defined here
+env:
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+  NAMESPACE: jpetstore
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel (if there is no dependency)
+jobs:
+  #Job used for publish test info
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    if: false # temporarily disabled
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: JDK 11 set up
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+
+      - name: Python set up
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Python dependencies
+        run: |
+          python --version
+          pip install -r ./pipeline-common/publish_data/requirements.txt
+
+      - name: Test jpetstore application
+        run: |
+          cd jpetstore
+          ant runtest
+
+  # Job used to create docker images, publish them and publish build info
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python set up
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Python dependencies
+        run: |
+          python --version
+          pip install -r ./pipeline-common/publish_data/requirements.txt
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker images
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${{ github.event.inputs.image_tag }}"
+          web_image="${{ env.DOCKER_USERNAME }}/jpetstore-web"
+          db_image="${{ env.DOCKER_USERNAME }}/jpetstore-db"
+
+          docker build -t "${web_image}:${tag}" -t "${web_image}:latest" ./jpetstore
+          docker build -t "${db_image}:${tag}" -t "${db_image}:latest" .
+
+          docker push "${web_image}:${tag}"
+          docker push "${web_image}:latest"
+          docker push "${db_image}:${tag}"
+          docker push "${db_image}:latest"
+
+  # Job used for secure app with SONARQUBE and Docker scan
+  secure:
+    name: Secure
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: false # temporarily disabled
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python set up
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Python dependencies
+        run: |
+          python --version
+          pip install -r ./pipeline-common/publish_data/requirements.txt
+
+      - name: Scan web image
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: '${{ env.DOCKER_USERNAME }}/jpetstore-web:${{ github.event.inputs.image_tag }}'
+          format: 'table'
+          exit-code: '0'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Scan db image
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: '${{ env.DOCKER_USERNAME }}/jpetstore-db:${{ github.event.inputs.image_tag }}'
+          format: 'table'
+          exit-code: '0'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+  # Job used for deploy app to AKS and publish deploy info
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: [build]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python set up
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Python dependencies
+        run: |
+          python --version
+          pip install -r ./pipeline-common/publish_data/requirements.txt
+
+      - name: Prepare runtime files from Terraform outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s' "${{ github.event.inputs.kube_config }}" > tmp_kube_config
+          printf '%s' "${{ github.event.inputs.cluster_fqdn }}" > fqdn
+          printf '%s' "${{ github.event.inputs.db_url }}" > db_url
+          printf '%s' "${{ github.event.inputs.db_user }}@${{ github.event.inputs.db_url }}" > db_user
+          printf '%s' "${{ github.event.inputs.db_password }}" > db_password
+
+      - name: Validate cluster access
+        shell: bash
+        run: |
+          set -euo pipefail
+          kubectl get nodes --kubeconfig tmp_kube_config
+
+      - name: Package and deploy helm chart
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${{ github.workspace }}/modernpets"
+          helm package --destination "${{ github.workspace }}/modernpets" ./helm/modernpets
+          helm upgrade --install --wait \
+            --set image.repository="${{ env.DOCKER_USERNAME }}" \
+            --set image.tag="${{ github.event.inputs.image_tag }}" \
+            --set mysql.url="$(cat db_url | base64 -w0)" \
+            --set mysql.username="$(cat db_user | base64 -w0)" \
+            --set mysql.password="$(cat db_password | base64 -w0)" \
+            --set isDBAAS=True \
+            --set isLB=False \
+            --set httpHost="$(cat fqdn)" \
+            --namespace="${{ env.NAMESPACE }}" \
+            --create-namespace "${{ env.NAMESPACE }}" \
+            --kubeconfig tmp_kube_config \
+            "${{ github.workspace }}/modernpets/modernpets-0.1.5.tgz"
+
+      - name: Print ingress and expected URL
+        shell: bash
+        run: |
+          set -euo pipefail
+          kubectl get ingress -n "${{ env.NAMESPACE }}" --kubeconfig tmp_kube_config
+          echo "Computed URL from chart host: http://jpetstore-web.$(cat fqdn)"
+
+      - name: Deploy monitoring stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          ns=$(kubectl get ns --kubeconfig tmp_kube_config | grep monitoring | awk '{print $1}' || true)
+          if [ -z "$ns" ] || [ "$ns" != "monitoring" ]; then
+            kubectl create ns monitoring --kubeconfig tmp_kube_config
+            kubectl apply -f ./prometheus -n monitoring --kubeconfig tmp_kube_config
+            sleep 1m
+            kubectl apply -f ./alertmanager/AlertManagerConfigmap.yaml -n monitoring --kubeconfig tmp_kube_config
+            kubectl apply -f ./alertmanager/AlertTemplateConfigMap.yaml -n monitoring --kubeconfig tmp_kube_config
+            kubectl apply -f ./alertmanager/Deployment.yaml -n monitoring --kubeconfig tmp_kube_config
+            kubectl apply -f ./alertmanager/Service.yaml -n monitoring --kubeconfig tmp_kube_config
+          fi

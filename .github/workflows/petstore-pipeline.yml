@@ -173,7 +173,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          printf '%s' "${{ github.event.inputs.kube_config }}" > tmp_kube_config
+          kube_config_input='${{ github.event.inputs.kube_config }}'
+          kube_config_input="${kube_config_input#\"}"
+          kube_config_input="${kube_config_input%\"}"
+          if [[ "$kube_config_input" == *\\n* ]]; then
+            printf '%b' "$kube_config_input" > tmp_kube_config
+          else
+            printf '%s' "$kube_config_input" > tmp_kube_config
+          fi
           printf '%s' "${{ github.event.inputs.cluster_fqdn }}" > fqdn
           printf '%s' "${{ github.event.inputs.db_url }}" > db_url
           printf '%s' "${{ github.event.inputs.db_user }}@${{ github.event.inputs.db_url }}" > db_user

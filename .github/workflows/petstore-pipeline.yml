@@ -180,15 +180,20 @@ jobs:
           import json
           import os
           import re
+          import sys
 
           raw = os.environ.get("KUBE_CONFIG_INPUT", "")
           text = raw.strip()
 
-          # Remove one layer of outer quotes, if present.
+          if not text:
+            print("Invalid kube_config input: empty value")
+            sys.exit(1)
+
+          # Remove one layer of outer quotes if present.
           if len(text) >= 2 and ((text[0] == '"' and text[-1] == '"') or (text[0] == "'" and text[-1] == "'")):
             text = text[1:-1]
 
-          # If a Terraform JSON wrapper/object was pasted, try extracting the value field.
+          # Handle terraform JSON wrapper if pasted.
           if text.lstrip().startswith("{") and '"value"' in text:
             try:
               obj = json.loads(text)
@@ -204,42 +209,29 @@ jobs:
               if m:
                 text = m.group(1)
 
-          candidates = []
-
-          # Candidate 1: as-is raw text.
-          candidates.append(text)
-
-          # Candidate 2: escaped transport.
+          # Normalize escaped transport from UI.
           if "\\n" in text or '\\"' in text:
-            candidates.append(text.replace("\\n", "\n").replace('\\"', '"'))
+            text = text.replace("\\n", "\n").replace('\\"', '"')
 
-          # Candidate 3: base64 transport.
-          compact = "".join(text.split())
-          compact += "=" * ((4 - len(compact) % 4) % 4)
+          if "apiVersion:" not in text or "clusters:" not in text:
+            print("Invalid kube_config input. Pass raw kubeconfig content from Terraform output.")
+            sys.exit(1)
+
+          # Convert to base64 internally, then decode for use.
+          kube_b64 = base64.b64encode(text.encode("utf-8")).decode("ascii")
+
           try:
-            decoded = base64.b64decode(compact, validate=False).decode("utf-8")
-            candidates.append(decoded)
+            decoded = base64.b64decode(kube_b64, validate=True).decode("utf-8")
           except Exception:
-            pass
-
-          # Pick the first candidate that resembles kubeconfig. Fall back to first non-empty candidate.
-          selected = ""
-          for c in candidates:
-            if "apiVersion:" in c and "clusters:" in c:
-              selected = c
-              break
-          if not selected:
-            selected = next((c for c in candidates if c.strip()), "")
-
-          if not selected.strip():
-            raise SystemExit("Invalid kube_config input: empty value")
+            print("Failed to process kube_config input.")
+            sys.exit(1)
 
           with open("tmp_kube_config", "w", encoding="utf-8", newline="\n") as f:
-              f.write(selected if selected.endswith("\n") else selected + "\n")
+            f.write(decoded if decoded.endswith("\n") else decoded + "\n")
           PY
 
           kubectl config view --kubeconfig tmp_kube_config >/dev/null || {
-            echo "Invalid kube_config input. Use base64 (recommended): terraform output -raw kube_config | base64 -w 0"
+            echo "Invalid kube_config input. Ensure Terraform passes valid kubeconfig content."
             exit 1
           }
           printf '%s' "${{ github.event.inputs.cluster_fqdn }}" > fqdn

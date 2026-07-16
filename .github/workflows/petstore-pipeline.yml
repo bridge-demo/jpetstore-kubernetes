@@ -259,11 +259,17 @@ jobs:
           set -euo pipefail
           mkdir -p "${{ github.workspace }}/modernpets"
 
-          ca_data=$(kubectl config view --raw --kubeconfig tmp_kube_config -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' || true)
+          ca_data=$(awk '/certificate-authority-data:/{print $2; exit}' tmp_kube_config || true)
+          insecure_tls=$(awk '/insecure-skip-tls-verify:/{print $2; exit}' tmp_kube_config || true)
           tls_args=""
           if [ -n "$ca_data" ]; then
             printf '%s' "$ca_data" | base64 -d > ca.crt
             tls_args="--kube-ca-file ca.crt"
+          elif [ "$insecure_tls" = "true" ]; then
+            tls_args="--kube-insecure-skip-tls-verify"
+          else
+            echo "kubeconfig CA data not found; using insecure TLS for Helm connection."
+            tls_args="--kube-insecure-skip-tls-verify"
           fi
 
           helm package --destination "${{ github.workspace }}/modernpets" ./helm/modernpets

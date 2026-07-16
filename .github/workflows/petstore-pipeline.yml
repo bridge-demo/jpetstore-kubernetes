@@ -245,20 +245,24 @@ jobs:
           printf '%s' "${{ github.event.inputs.db_password }}" > db_password
 
       - name: Validate cluster access
-        shell: bash
-        run: |
-          set -euo pipefail
+        set -euo pipefail
           fqdn_value=$(cat fqdn)
-          token=$(kubectl config view --kubeconfig tmp_kube_config -o jsonpath='{.users[0].user.token}' || true)
+          client_cert_data=$(kubectl config view --kubeconfig tmp_kube_config -o jsonpath='{.users[0].user.client-certificate-data}' || true)
+          client_key_data=$(kubectl config view --kubeconfig tmp_kube_config -o jsonpath='{.users[0].user.client-key-data}' || true)
           ca_data=$(kubectl config view --kubeconfig tmp_kube_config -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' || true)
 
-          if [ -z "$token" ]; then
-            echo "Invalid kubeconfig: token not found in first user entry."
+          if [ -z "$client_cert_data" ] || [ -z "$client_key_data" ]; then
+            echo "Invalid kubeconfig: missing client certificate/key."
             exit 1
           fi
 
           if [ -n "$ca_data" ]; then
             printf '%s' "$ca_data" | base64 -d > ca.crt
+          fi
+
+          if [ -n "$client_cert_data" ] && [ -n "$client_key_data" ]; then
+            printf '%s' "$client_cert_data" | base64 -d > client.crt
+            printf '%s' "$client_key_data" | base64 -d > client.key
           fi
 
           kubectl config set-cluster aks \
@@ -267,7 +271,8 @@ jobs:
             --kubeconfig tmp_kube_config >/dev/null
 
           kubectl config set-credentials aks-user \
-            --token="$token" \
+            --client-certificate=client.crt \
+            --client-key=client.key \
             --kubeconfig tmp_kube_config >/dev/null
 
           kubectl config set-context aks-context \
@@ -278,6 +283,7 @@ jobs:
           kubectl config use-context aks-context --kubeconfig tmp_kube_config >/dev/null
 
           kubectl get nodes --kubeconfig tmp_kube_config
+  
       - name: Package and deploy helm chart
         shell: bash
         run: |

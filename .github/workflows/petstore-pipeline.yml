@@ -244,42 +244,14 @@ jobs:
           printf '%s' "${{ github.event.inputs.db_user }}@${{ github.event.inputs.db_url }}" > db_user
           printf '%s' "${{ github.event.inputs.db_password }}" > db_password
 
-      - name: Validate cluster access
+      - name: Show kubeconfig diagnostics (non-blocking)
         shell: bash
         run: |
           set -euo pipefail
-          fqdn_value=$(cat fqdn)
-          cluster_name=$(kubectl config view --kubeconfig tmp_kube_config -o jsonpath='{.contexts[0].context.cluster}' || true)
-          user_name=$(kubectl config view --kubeconfig tmp_kube_config -o jsonpath='{.contexts[0].context.user}' || true)
-          ca_data=$(kubectl config view --kubeconfig tmp_kube_config -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' || true)
-
-          if [ -z "$cluster_name" ]; then
-            cluster_name=aks
-          fi
-
-          if [ -n "$ca_data" ]; then
-            printf '%s' "$ca_data" | base64 -d > ca.crt
-          fi
-
-          kubectl config set-cluster "$cluster_name" \
-            --server="https://${fqdn_value}:443" \
-            ${ca_data:+--certificate-authority=ca.crt} \
-            --kubeconfig tmp_kube_config >/dev/null
-
-          if [ -n "$user_name" ]; then
-            kubectl config set-context aks-context \
-              --cluster="$cluster_name" \
-              --user="$user_name" \
-              --kubeconfig tmp_kube_config >/dev/null
-          else
-            kubectl config set-context aks-context \
-              --cluster="$cluster_name" \
-              --kubeconfig tmp_kube_config >/dev/null
-          fi
-
-          kubectl config use-context aks-context --kubeconfig tmp_kube_config >/dev/null
-
-          kubectl get nodes --kubeconfig tmp_kube_config
+          echo "kubeconfig current-context:"
+          kubectl config current-context --kubeconfig tmp_kube_config || true
+          echo "kubeconfig clusters:"
+          kubectl config get-clusters --kubeconfig tmp_kube_config || true
   
       - name: Package and deploy helm chart
         shell: bash

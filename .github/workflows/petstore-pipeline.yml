@@ -248,6 +248,30 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          cluster_name=$(kubectl config view --kubeconfig tmp_kube_config -o jsonpath='{.clusters[0].name}' || true)
+          user_name=$(kubectl config view --kubeconfig tmp_kube_config -o jsonpath='{.users[0].name}' || true)
+          context_name=$(kubectl config view --kubeconfig tmp_kube_config -o jsonpath='{.contexts[0].name}' || true)
+
+          if [ -n "$cluster_name" ] && [ -f fqdn ]; then
+            kubectl config set-cluster "$cluster_name" \
+              --server="https://$(cat fqdn):443" \
+              --kubeconfig tmp_kube_config >/dev/null
+          fi
+
+          if [ -n "$context_name" ] && [ -n "$cluster_name" ] && [ -n "$user_name" ]; then
+            kubectl config set-context "$context_name" \
+              --cluster="$cluster_name" \
+              --user="$user_name" \
+              --kubeconfig tmp_kube_config >/dev/null
+            kubectl config use-context "$context_name" --kubeconfig tmp_kube_config >/dev/null
+          elif [ -n "$cluster_name" ] && [ -n "$user_name" ]; then
+            kubectl config set-context auto-context \
+              --cluster="$cluster_name" \
+              --user="$user_name" \
+              --kubeconfig tmp_kube_config >/dev/null
+            kubectl config use-context auto-context --kubeconfig tmp_kube_config >/dev/null
+          fi
+
           kubectl get nodes --kubeconfig tmp_kube_config
 
       - name: Package and deploy helm chart

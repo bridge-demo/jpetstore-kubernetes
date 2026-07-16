@@ -177,50 +177,69 @@ jobs:
           set -euo pipefail
           python - <<'PY'
           import base64
+          import json
           import os
-          import sys
+          import re
 
           raw = os.environ.get("KUBE_CONFIG_INPUT", "")
-          text = raw.strip().strip('"')
+          text = raw.strip()
 
-          def is_kubeconfig(s: str) -> bool:
-            return "apiVersion:" in s and "clusters:" in s and "users:" in s and "current-context:" in s
+          # Remove one layer of outer quotes, if present.
+          if len(text) >= 2 and ((text[0] == '"' and text[-1] == '"') or (text[0] == "'" and text[-1] == "'")):
+            text = text[1:-1]
 
-          selected = ""
-
-          # Mode 1: escaped string transport, e.g. apiVersion: v1\nclusters:\n...
-          if "\\n" in text:
-            selected = text.replace("\\n", "\n").replace('\\"', '"')
-
-          # Mode 2: base64 transport, recommended for UI single-line input.
-          if not selected:
-            compact = "".join(text.split())
-            # Pad if needed.
-            compact += "=" * ((4 - len(compact) % 4) % 4)
+          # If a Terraform JSON wrapper/object was pasted, try extracting the value field.
+          if text.lstrip().startswith("{") and '"value"' in text:
             try:
-              decoded = base64.b64decode(compact, validate=False).decode("utf-8")
-              if is_kubeconfig(decoded):
-                selected = decoded
+              obj = json.loads(text)
+              if isinstance(obj, dict):
+                if "value" in obj and isinstance(obj["value"], str):
+                  text = obj["value"]
+                elif "kube_config" in obj and isinstance(obj["kube_config"], dict):
+                  v = obj["kube_config"].get("value")
+                  if isinstance(v, str):
+                    text = v
             except Exception:
-              pass
+              m = re.search(r'"value"\s*:\s*"(.*?)"\s*(,\s*"type"|,\s*"sensitive"|\})', text, re.S)
+              if m:
+                text = m.group(1)
 
-          # Raw multiline kubeconfig generally does not survive workflow_dispatch text boxes.
-          if not selected and is_kubeconfig(text):
-            selected = text
+          candidates = []
 
-          if not selected or not is_kubeconfig(selected):
-            print("Invalid kube_config input.")
-            print("Use one of:")
-            print("1) base64 kubeconfig (recommended)")
-            print("2) escaped kubeconfig string containing \\n")
-            sys.exit(1)
+          # Candidate 1: as-is raw text.
+          candidates.append(text)
+
+          # Candidate 2: escaped transport.
+          if "\\n" in text or '\\"' in text:
+            candidates.append(text.replace("\\n", "\n").replace('\\"', '"'))
+
+          # Candidate 3: base64 transport.
+          compact = "".join(text.split())
+          compact += "=" * ((4 - len(compact) % 4) % 4)
+          try:
+            decoded = base64.b64decode(compact, validate=False).decode("utf-8")
+            candidates.append(decoded)
+          except Exception:
+            pass
+
+          # Pick the first candidate that resembles kubeconfig. Fall back to first non-empty candidate.
+          selected = ""
+          for c in candidates:
+            if "apiVersion:" in c and "clusters:" in c:
+              selected = c
+              break
+          if not selected:
+            selected = next((c for c in candidates if c.strip()), "")
+
+          if not selected.strip():
+            raise SystemExit("Invalid kube_config input: empty value")
 
           with open("tmp_kube_config", "w", encoding="utf-8", newline="\n") as f:
               f.write(selected if selected.endswith("\n") else selected + "\n")
           PY
 
           kubectl config view --kubeconfig tmp_kube_config >/dev/null || {
-            echo "Invalid kube_config input. Paste raw kubeconfig text, base64 kubeconfig, or terraform JSON value blob."
+            echo "Invalid kube_config input. Use base64 (recommended): terraform output -raw kube_config | base64 -w 0"
             exit 1
           }
           printf '%s' "${{ github.event.inputs.cluster_fqdn }}" > fqdn

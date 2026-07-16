@@ -249,11 +249,11 @@ jobs:
         run: |
           set -euo pipefail
           fqdn_value=$(cat fqdn)
-          user_name=$(kubectl config view --kubeconfig tmp_kube_config -o jsonpath='{.users[0].name}' || true)
+          cluster_name=$(kubectl config view --kubeconfig tmp_kube_config -o jsonpath='{.clusters[0].name}' || true)
           ca_data=$(kubectl config view --kubeconfig tmp_kube_config -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' || true)
 
-          if [ -z "$user_name" ]; then
-            echo "Invalid kubeconfig: missing user entry."
+          if [ -z "$cluster_name" ]; then
+            echo "Invalid kubeconfig: missing cluster entry."
             exit 1
           fi
 
@@ -261,17 +261,10 @@ jobs:
             printf '%s' "$ca_data" | base64 -d > ca.crt
           fi
 
-          kubectl config set-cluster aks \
+          kubectl config set-cluster "$cluster_name" \
             --server="https://${fqdn_value}:443" \
             ${ca_data:+--certificate-authority=ca.crt} \
             --kubeconfig tmp_kube_config >/dev/null
-
-          kubectl config set-context aks-context \
-            --cluster=aks \
-            --user="$user_name" \
-            --kubeconfig tmp_kube_config >/dev/null
-
-          kubectl config use-context aks-context --kubeconfig tmp_kube_config >/dev/null
 
           kubectl get nodes --kubeconfig tmp_kube_config
   

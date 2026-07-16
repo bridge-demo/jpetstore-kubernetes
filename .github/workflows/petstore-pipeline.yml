@@ -270,6 +270,7 @@ jobs:
             --set httpHost="$(cat fqdn)" \
             --namespace="${{ env.NAMESPACE }}" \
             --create-namespace "${{ env.NAMESPACE }}" \
+            --kube-apiserver="https://$(cat fqdn):443" \
             --kubeconfig tmp_kube_config \
             "${{ github.workspace }}/modernpets/modernpets-0.1.5.tgz"
 

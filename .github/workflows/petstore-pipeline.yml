@@ -252,19 +252,18 @@ jobs:
           cluster_name=$(kubectl config view --kubeconfig tmp_kube_config -o jsonpath='{.clusters[0].name}' || true)
           ca_data=$(kubectl config view --kubeconfig tmp_kube_config -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' || true)
 
-          if [ -z "$cluster_name" ]; then
-            echo "Invalid kubeconfig: missing cluster entry."
-            exit 1
-          fi
+          if [ -n "$cluster_name" ]; then
+            if [ -n "$ca_data" ]; then
+              printf '%s' "$ca_data" | base64 -d > ca.crt
+            fi
 
-          if [ -n "$ca_data" ]; then
-            printf '%s' "$ca_data" | base64 -d > ca.crt
+            kubectl config set-cluster "$cluster_name" \
+              --server="https://${fqdn_value}:443" \
+              ${ca_data:+--certificate-authority=ca.crt} \
+              --kubeconfig tmp_kube_config >/dev/null
+          else
+            echo "Cluster entry not found in kubeconfig; validating with kubeconfig as-is."
           fi
-
-          kubectl config set-cluster "$cluster_name" \
-            --server="https://${fqdn_value}:443" \
-            ${ca_data:+--certificate-authority=ca.crt} \
-            --kubeconfig tmp_kube_config >/dev/null
 
           kubectl get nodes --kubeconfig tmp_kube_config
   

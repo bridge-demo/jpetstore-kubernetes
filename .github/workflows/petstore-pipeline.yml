@@ -258,6 +258,14 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "${{ github.workspace }}/modernpets"
+
+          ca_data=$(kubectl config view --raw --kubeconfig tmp_kube_config -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' || true)
+          tls_args=""
+          if [ -n "$ca_data" ]; then
+            printf '%s' "$ca_data" | base64 -d > ca.crt
+            tls_args="--kube-ca-file ca.crt"
+          fi
+
           helm package --destination "${{ github.workspace }}/modernpets" ./helm/modernpets
           helm upgrade --install --wait \
             --set image.repository="${{ env.DOCKER_USERNAME }}" \
@@ -272,6 +280,7 @@ jobs:
             --create-namespace "${{ env.NAMESPACE }}" \
             --kube-apiserver="https://$(cat fqdn):443" \
             --kubeconfig tmp_kube_config \
+            ${tls_args} \
             "${{ github.workspace }}/modernpets/modernpets-0.1.5.tgz"
 
       - name: Print ingress and expected URL

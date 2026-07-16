@@ -213,6 +213,11 @@ jobs:
           if "\\n" in text or '\\"' in text:
             text = text.replace("\\n", "\n").replace('\\"', '"')
 
+          # Some workflow_dispatch paths flatten multiline YAML into a single line.
+          # Reconstruct likely kubeconfig line boundaries before validation.
+          if "\n" not in text and "apiVersion:" in text and "clusters:" in text:
+            text = re.sub(r"\s+(?=(apiVersion:|clusters:|contexts:|current-context:|kind:|users:|-\s+cluster:|-\s+context:|\s*name:|\s*user:|\s*server:|\s*certificate-authority-data:|\s*client-certificate-data:|\s*client-key-data:|\s*token:))", "\n", text)
+
           if "apiVersion:" not in text or "clusters:" not in text:
             print("Invalid kube_config input. Pass raw kubeconfig content from Terraform output.")
             sys.exit(1)

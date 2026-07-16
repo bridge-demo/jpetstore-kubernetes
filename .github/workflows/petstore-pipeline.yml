@@ -245,7 +245,9 @@ jobs:
           printf '%s' "${{ github.event.inputs.db_password }}" > db_password
 
       - name: Validate cluster access
-        set -euo pipefail
+        shell: bash
+        run: |
+          set -euo pipefail
           fqdn_value=$(cat fqdn)
           client_cert_data=$(kubectl config view --kubeconfig tmp_kube_config -o jsonpath='{.users[0].user.client-certificate-data}' || true)
           client_key_data=$(kubectl config view --kubeconfig tmp_kube_config -o jsonpath='{.users[0].user.client-key-data}' || true)

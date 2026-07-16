@@ -177,52 +177,44 @@ jobs:
           set -euo pipefail
           python - <<'PY'
           import base64
-          import json
           import os
-          import re
+          import sys
 
           raw = os.environ.get("KUBE_CONFIG_INPUT", "")
-          text = raw.strip()
+          text = raw.strip().strip('"')
 
-          # Terraform JSON/object wrapper fallback: extract value field if present.
-          if '"value"' in text and text.lstrip().startswith("{"):
-              m = re.search(r'"value"\s*:\s*"(.*)"\s*,\s*"type"', text, re.S)
-              if m:
-                  text = m.group(1)
+          def is_kubeconfig(s: str) -> bool:
+            return "apiVersion:" in s and "clusters:" in s and "users:" in s and "current-context:" in s
 
-          # Remove one pair of outer quotes if present.
-          if len(text) >= 2 and text[0] == '"' and text[-1] == '"':
-              text = text[1:-1]
+          selected = ""
 
-          candidates = []
+          # Mode 1: escaped string transport, e.g. apiVersion: v1\nclusters:\n...
+          if "\\n" in text:
+            selected = text.replace("\\n", "\n").replace('\\"', '"')
 
-          # Candidate 1: base64 decode (single-line safe for UI inputs).
-          try:
-              decoded = base64.b64decode(text, validate=True).decode("utf-8")
-              candidates.append(decoded)
-          except Exception:
+          # Mode 2: base64 transport, recommended for UI single-line input.
+          if not selected:
+            compact = "".join(text.split())
+            # Pad if needed.
+            compact += "=" * ((4 - len(compact) % 4) % 4)
+            try:
+              decoded = base64.b64decode(compact, validate=False).decode("utf-8")
+              if is_kubeconfig(decoded):
+                selected = decoded
+            except Exception:
               pass
 
-          # Candidate 2: escaped newlines from JSON/string transports.
-          if "\\n" in text or '\\"' in text:
-              try:
-                  wrapped = text if (text.startswith('"') and text.endswith('"')) else f'"{text}"'
-                  candidates.append(json.loads(wrapped))
-              except Exception:
-                  candidates.append(text.replace("\\n", "\n").replace('\\"', '"'))
+          # Raw multiline kubeconfig generally does not survive workflow_dispatch text boxes.
+          if not selected and is_kubeconfig(text):
+            selected = text
 
-          # Candidate 3: raw pasted kubeconfig.
-          candidates.append(text)
+          if not selected or not is_kubeconfig(selected):
+            print("Invalid kube_config input.")
+            print("Use one of:")
+            print("1) base64 kubeconfig (recommended)")
+            print("2) escaped kubeconfig string containing \\n")
+            sys.exit(1)
 
-          def looks_like_kubeconfig(s: str) -> bool:
-              return (
-                  "apiVersion:" in s
-                  and "clusters:" in s
-                  and "users:" in s
-                  and "current-context:" in s
-              )
-
-          selected = next((c for c in candidates if looks_like_kubeconfig(c)), candidates[-1])
           with open("tmp_kube_config", "w", encoding="utf-8", newline="\n") as f:
               f.write(selected if selected.endswith("\n") else selected + "\n")
           PY

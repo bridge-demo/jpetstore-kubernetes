@@ -271,12 +271,38 @@ jobs:
             exit 1
           fi
 
-          # First try standard kubeconfig flow.
-          if helm upgrade --install "$RELEASE_NAME" "$CHART_TGZ" \
+          # Resolve effective context and auth from kubeconfig in a robust way.
+          KUBE_CONTEXT=$(kubectl config current-context --kubeconfig tmp_kube_config 2>/dev/null || true)
+          if [ -z "$KUBE_CONTEXT" ]; then
+            echo "No current-context found in kubeconfig."
+            exit 1
+          fi
+
+          KUBE_SERVER=$(kubectl config view --raw --kubeconfig tmp_kube_config -o jsonpath='{.clusters[0].cluster.server}' 2>/dev/null || true)
+          KUBE_CA=$(kubectl config view --raw --kubeconfig tmp_kube_config -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' 2>/dev/null || true)
+          KUBE_TOKEN=$(kubectl config view --raw --kubeconfig tmp_kube_config -o jsonpath='{.users[0].user.token}' 2>/dev/null || true)
+
+          if [ -z "$KUBE_SERVER" ]; then
+            echo "Kube API server not found in kubeconfig."
+            exit 1
+          fi
+
+          helm_kube_args=(--kubeconfig tmp_kube_config --kube-context "$KUBE_CONTEXT")
+          if [ -n "$KUBE_TOKEN" ]; then
+            helm_kube_args=(--kube-apiserver "$KUBE_SERVER" --kube-token "$KUBE_TOKEN")
+            if [ -n "$KUBE_CA" ]; then
+              printf '%s' "$KUBE_CA" | base64 -d > ca.crt
+              helm_kube_args+=(--kube-ca-file ca.crt)
+            else
+              helm_kube_args+=(--kube-insecure-skip-tls-verify)
+            fi
+          fi
+
+          helm upgrade --install "$RELEASE_NAME" "$CHART_TGZ" \
             --wait \
             --namespace "$NAMESPACE" \
             --create-namespace \
-            --kubeconfig tmp_kube_config \
+            "${helm_kube_args[@]}" \
             --set image.repository="${{ env.DOCKER_USERNAME }}" \
             --set image.tag="${{ github.event.inputs.image_tag }}" \
             --set mysql.url="$(cat db_url | base64 -w0)" \
@@ -284,41 +310,7 @@ jobs:
             --set mysql.password="$(cat db_password | base64 -w0)" \
             --set isDBAAS=True \
             --set isLB=False \
-            --set httpHost="$(cat fqdn)"; then
-            echo "Helm deploy succeeded with kubeconfig."
-          else
-            echo "Helm deploy failed with kubeconfig, retrying with explicit token/server from kubeconfig."
-            KUBE_SERVER=$(awk '/server:/{print $2; exit}' tmp_kube_config || true)
-            KUBE_TOKEN=$(awk '/token:/{print $2; exit}' tmp_kube_config || true)
-            KUBE_CA=$(awk '/certificate-authority-data:/{print $2; exit}' tmp_kube_config || true)
-
-            if [ -z "$KUBE_SERVER" ] || [ -z "$KUBE_TOKEN" ]; then
-              echo "Fallback auth data not found in kubeconfig (server/token)."
-              exit 1
-            fi
-
-            retry_args=(--kube-apiserver "$KUBE_SERVER" --kube-token "$KUBE_TOKEN")
-            if [ -n "$KUBE_CA" ]; then
-              printf '%s' "$KUBE_CA" | base64 -d > ca.crt
-              retry_args+=(--kube-ca-file ca.crt)
-            else
-              retry_args+=(--kube-insecure-skip-tls-verify)
-            fi
-
-            helm upgrade --install "$RELEASE_NAME" "$CHART_TGZ" \
-              --wait \
-              --namespace "$NAMESPACE" \
-              --create-namespace \
-              "${retry_args[@]}" \
-              --set image.repository="${{ env.DOCKER_USERNAME }}" \
-              --set image.tag="${{ github.event.inputs.image_tag }}" \
-              --set mysql.url="$(cat db_url | base64 -w0)" \
-              --set mysql.username="$(cat db_user | base64 -w0)" \
-              --set mysql.password="$(cat db_password | base64 -w0)" \
-              --set isDBAAS=True \
-              --set isLB=False \
-              --set httpHost="$(cat fqdn)"
-          fi
+            --set httpHost="$(cat fqdn)"
           
       - name: Verify JPetStore is reachable
         shell: bash

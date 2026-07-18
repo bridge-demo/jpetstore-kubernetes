@@ -222,6 +222,12 @@ jobs:
             print("Invalid kube_config input. Pass raw kubeconfig content from Terraform output.")
             sys.exit(1)
 
+          # Guard against truncated flattened input commonly seen in UI manual dispatch.
+          if "users:" not in text or ("token:" not in text and "client-key-data:" not in text):
+            print("kube_config appears truncated/incomplete from workflow input.")
+            print("Set repository secret AKS_KUBECONFIG_B64 to base64(full kubeconfig YAML) and rerun.")
+            sys.exit(1)
+
           # Convert to base64 internally, then decode for use.
           kube_b64 = base64.b64encode(text.encode("utf-8")).decode("ascii")
 
@@ -239,6 +245,17 @@ jobs:
             echo "Invalid kube_config input. Ensure Terraform passes valid kubeconfig content."
             exit 1
           }
+
+          # Minimal deterministic fix: ensure current-context exists for Helm.
+          if ! kubectl config current-context --kubeconfig tmp_kube_config >/dev/null 2>&1; then
+            first_context=$(kubectl config get-contexts -o name --kubeconfig tmp_kube_config | head -n 1 || true)
+            if [ -z "$first_context" ]; then
+              echo "No kube context found in kube_config input."
+              exit 1
+            fi
+            kubectl config use-context "$first_context" --kubeconfig tmp_kube_config >/dev/null
+            echo "Set missing current-context to: $first_context"
+          fi
 
           printf '%s' "${{ github.event.inputs.cluster_fqdn }}" > fqdn
           printf '%s' "${{ github.event.inputs.db_url }}" > db_url
@@ -271,38 +288,14 @@ jobs:
             exit 1
           fi
 
-          # Resolve effective context and auth from kubeconfig in a robust way.
-          KUBE_CONTEXT=$(kubectl config current-context --kubeconfig tmp_kube_config 2>/dev/null || true)
-          if [ -z "$KUBE_CONTEXT" ]; then
-            echo "No current-context found in kubeconfig."
-            exit 1
-          fi
-
-          KUBE_SERVER=$(kubectl config view --raw --kubeconfig tmp_kube_config -o jsonpath='{.clusters[0].cluster.server}' 2>/dev/null || true)
-          KUBE_CA=$(kubectl config view --raw --kubeconfig tmp_kube_config -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' 2>/dev/null || true)
-          KUBE_TOKEN=$(kubectl config view --raw --kubeconfig tmp_kube_config -o jsonpath='{.users[0].user.token}' 2>/dev/null || true)
-
-          if [ -z "$KUBE_SERVER" ]; then
-            echo "Kube API server not found in kubeconfig."
-            exit 1
-          fi
-
-          helm_kube_args=(--kubeconfig tmp_kube_config --kube-context "$KUBE_CONTEXT")
-          if [ -n "$KUBE_TOKEN" ]; then
-            helm_kube_args=(--kube-apiserver "$KUBE_SERVER" --kube-token "$KUBE_TOKEN")
-            if [ -n "$KUBE_CA" ]; then
-              printf '%s' "$KUBE_CA" | base64 -d > ca.crt
-              helm_kube_args+=(--kube-ca-file ca.crt)
-            else
-              helm_kube_args+=(--kube-insecure-skip-tls-verify)
-            fi
-          fi
+          KUBE_CONTEXT=$(kubectl config current-context --kubeconfig tmp_kube_config)
 
           helm upgrade --install "$RELEASE_NAME" "$CHART_TGZ" \
             --wait \
             --namespace "$NAMESPACE" \
             --create-namespace \
-            "${helm_kube_args[@]}" \
+            --kubeconfig tmp_kube_config \
+            --kube-context "$KUBE_CONTEXT" \
             --set image.repository="${{ env.DOCKER_USERNAME }}" \
             --set image.tag="${{ github.event.inputs.image_tag }}" \
             --set mysql.url="$(cat db_url | base64 -w0)" \
@@ -319,10 +312,11 @@ jobs:
 
           NAMESPACE="${{ env.NAMESPACE }}"
           KUBE_ARGS=(--kubeconfig tmp_kube_config)
+          HELM_ARGS=(--kubeconfig tmp_kube_config)
           RELEASE_NAME="jpetstore"
 
           echo "Helm release status:"
-          helm status "$RELEASE_NAME" --namespace "$NAMESPACE" --kubeconfig tmp_kube_config
+          helm status "$RELEASE_NAME" --namespace "$NAMESPACE" "${HELM_ARGS[@]}"
 
           echo "Deployment and pod status:"
           kubectl get deploy,pods,svc -n "$NAMESPACE" "${KUBE_ARGS[@]}"

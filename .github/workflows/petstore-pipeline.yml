@@ -17,7 +17,7 @@ on:
         required: true
         type: string
       kube_config:
-        description: "Fallback raw kubeconfig text (prefer repo secret AKS_KUBECONFIG for full multiline content)"
+        description: "Raw kubeconfig text from Terraform output"
         required: false
         default: ""
         type: string
@@ -174,7 +174,6 @@ jobs:
         shell: bash
         env:
           KUBE_CONFIG_INPUT: ${{ github.event.inputs.kube_config }}
-          KUBE_CONFIG_SECRET: ${{ secrets.AKS_KUBECONFIG }}
         run: |
           set -euo pipefail
           python - <<'PY'
@@ -185,12 +184,10 @@ jobs:
           import sys
 
           raw = os.environ.get("KUBE_CONFIG_INPUT", "")
-          secret_raw = os.environ.get("KUBE_CONFIG_SECRET", "")
-          text = secret_raw.strip() if secret_raw.strip() else raw.strip()
+          text = raw.strip()
 
           if not text:
             print("Invalid kube_config input: empty value")
-            print("Provide kube_config input or set repo secret AKS_KUBECONFIG with full multiline kubeconfig.")
             sys.exit(1)
 
           # Remove one layer of outer quotes if present.
@@ -217,11 +214,10 @@ jobs:
           if "\\n" in text or '\\"' in text:
             text = text.replace("\\n", "\n").replace('\\"', '"')
 
-          # Flattened one-line kubeconfig from workflow input is unreliable and often truncates.
+          # Some workflow_dispatch paths flatten multiline YAML into a single line.
+          # Reconstruct likely kubeconfig line boundaries before validation.
           if "\n" not in text and "apiVersion:" in text and "clusters:" in text:
-            print("Detected flattened kube_config input (single line), which is not reliable in workflow_dispatch UI.")
-            print("Set repository secret AKS_KUBECONFIG with full multiline kubeconfig and rerun.")
-            sys.exit(1)
+            text = re.sub(r"\s+(?=(apiVersion:|clusters:|contexts:|current-context:|kind:|users:|-\s+cluster:|-\s+context:|\s*name:|\s*user:|\s*server:|\s*certificate-authority-data:|\s*client-certificate-data:|\s*client-key-data:|\s*token:))", "\n", text)
 
           if "apiVersion:" not in text or "clusters:" not in text:
             print("Invalid kube_config input. Pass raw kubeconfig content from Terraform output.")
@@ -244,11 +240,11 @@ jobs:
             echo "Invalid kube_config input. Ensure Terraform passes valid kubeconfig content."
             exit 1
           }
-
           printf '%s' "${{ github.event.inputs.cluster_fqdn }}" > fqdn
           printf '%s' "${{ github.event.inputs.db_url }}" > db_url
           printf '%s' "${{ github.event.inputs.db_user }}@${{ github.event.inputs.db_url }}" > db_user
           printf '%s' "${{ github.event.inputs.db_password }}" > db_password
+
 
       - name: Show kubeconfig diagnostics (non-blocking)
         shell: bash

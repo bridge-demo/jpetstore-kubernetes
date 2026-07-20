@@ -16,9 +16,9 @@ on:
         description: "MySQL admin user from Terraform output"
         required: true
         type: string
-      kube_config:
-        description: "Raw kubeconfig text from Terraform output"
-        required: false
+      kube_config_base64:
+        description: "Base64-encoded kubeconfig content"
+        required: true
         default: ""
         type: string
       db_password:
@@ -173,73 +173,37 @@ jobs:
       - name: Prepare runtime files from Terraform outputs
         shell: bash
         env:
-          KUBE_CONFIG_INPUT: ${{ github.event.inputs.kube_config }}
+          KUBE_CONFIG_BASE64_INPUT: ${{ github.event.inputs.kube_config_base64 }}
         run: |
           set -euo pipefail
-          python - <<'PY'
-          import base64
-          import json
-          import os
-          import re
-          import sys
+          b64="${KUBE_CONFIG_BASE64_INPUT:-}"
+          b64="${b64#\"}"
+          b64="${b64%\"}"
+          b64="${b64#\'}"
+          b64="${b64%\'}"
+          b64="${b64//\\n/}"
+          b64="${b64//\\r/}"
+          b64="${b64// /}"
+          b64="${b64//$'\t'/}"
+          b64="${b64//$'\r'/}"
+          b64="${b64//$'\n'/}"
 
-          raw = os.environ.get("KUBE_CONFIG_INPUT", "")
-          text = raw.strip()
-
-          if not text:
-            print("Invalid kube_config input: empty value")
-            sys.exit(1)
-
-          # Remove one layer of outer quotes if present.
-          if len(text) >= 2 and ((text[0] == '"' and text[-1] == '"') or (text[0] == "'" and text[-1] == "'")):
-            text = text[1:-1]
-
-          # Handle terraform JSON wrapper if pasted.
-          if text.lstrip().startswith("{") and '"value"' in text:
-            try:
-              obj = json.loads(text)
-              if isinstance(obj, dict):
-                if "value" in obj and isinstance(obj["value"], str):
-                  text = obj["value"]
-                elif "kube_config" in obj and isinstance(obj["kube_config"], dict):
-                  v = obj["kube_config"].get("value")
-                  if isinstance(v, str):
-                    text = v
-            except Exception:
-              m = re.search(r'"value"\s*:\s*"(.*?)"\s*(,\s*"type"|,\s*"sensitive"|\})', text, re.S)
-              if m:
-                text = m.group(1)
-
-          # Normalize escaped transport from UI.
-          if "\\n" in text or '\\"' in text:
-            text = text.replace("\\n", "\n").replace('\\"', '"')
-
-          # Some workflow_dispatch paths flatten multiline YAML into a single line.
-          # Reconstruct likely kubeconfig line boundaries before validation.
-          if "\n" not in text and "apiVersion:" in text and "clusters:" in text:
-            text = re.sub(r"\s+(?=(apiVersion:|clusters:|contexts:|current-context:|kind:|users:|-\s+cluster:|-\s+context:|\s*name:|\s*user:|\s*server:|\s*certificate-authority-data:|\s*client-certificate-data:|\s*client-key-data:|\s*token:))", "\n", text)
-
-          if "apiVersion:" not in text or "clusters:" not in text:
-            print("Invalid kube_config input. Pass raw kubeconfig content from Terraform output.")
-            sys.exit(1)
-
-          # Convert to base64 internally, then decode for use.
-          kube_b64 = base64.b64encode(text.encode("utf-8")).decode("ascii")
-
-          try:
-            decoded = base64.b64decode(kube_b64, validate=True).decode("utf-8")
-          except Exception:
-            print("Failed to process kube_config input.")
-            sys.exit(1)
-
-          with open("tmp_kube_config", "w", encoding="utf-8", newline="\n") as f:
-            f.write(decoded if decoded.endswith("\n") else decoded + "\n")
-          PY
-
-          kubectl config view --kubeconfig tmp_kube_config >/dev/null || {
-            echo "Invalid kube_config input. Ensure Terraform passes valid kubeconfig content."
+          if [ -z "$b64" ]; then
+            echo "Invalid kube_config_base64 input: empty value"
             exit 1
-          }
+          fi
+
+          if ! printf '%s' "$b64" | base64 --decode > tmp_kube_config 2>/dev/null; then
+            echo "Invalid kube_config_base64 input: expected valid Base64 kubeconfig text"
+            exit 1
+          fi
+
+          # Quick validation so downstream kubectl/helm steps use a valid kubeconfig.
+          if ! kubectl config view --kubeconfig tmp_kube_config >/dev/null; then
+            echo "Invalid kube_config_base64 input: decoded content is not a valid kubeconfig"
+            exit 1
+          fi
+
           printf '%s' "${{ github.event.inputs.cluster_fqdn }}" > fqdn
           printf '%s' "${{ github.event.inputs.db_url }}" > db_url
           printf '%s' "${{ github.event.inputs.db_user }}@${{ github.event.inputs.db_url }}" > db_user
@@ -254,6 +218,18 @@ jobs:
           kubectl config current-context --kubeconfig tmp_kube_config || true
           echo "kubeconfig clusters:"
           kubectl config get-clusters --kubeconfig tmp_kube_config || true
+
+      - name: Print tmp_kube_config (redacted)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "tmp_kube_config (redacted):"
+          sed -E \
+            -e 's/(client-key-data:[[:space:]]*).*/\1<redacted>/' \
+            -e 's/(client-certificate-data:[[:space:]]*).*/\1<redacted>/' \
+            -e 's/(token:[[:space:]]*).*/\1<redacted>/' \
+            -e 's/(password:[[:space:]]*).*/\1<redacted>/' \
+            tmp_kube_config
 
       - name: Deploy JPetStore by Helm chart
         shell: bash

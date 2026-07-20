@@ -101,10 +101,18 @@ jobs:
           set -euo pipefail
           git clone --depth 1 https://github.com/aspectran/aspectran-jpetstore.git aspectran-jpetstore
 
-          if [ ! -f "aspectran-jpetstore/Dockerfile" ]; then
-            echo "Expected Dockerfile not found in aspectran-jpetstore/"
-            exit 1
-          fi
+          cat > aspectran-jpetstore/Dockerfile.ci <<'EOF'
+          FROM maven:3.9.9-eclipse-temurin-21 AS builder
+          WORKDIR /src
+          COPY . .
+          RUN mvn -B -DskipTests clean package
+
+          FROM eclipse-temurin:21-jre
+          WORKDIR /opt/aspectran
+          COPY --from=builder /src/app ./app
+          EXPOSE 8081
+          CMD ["java", "--enable-native-access=ALL-UNNAMED", "-server", "-classpath", "/opt/aspectran/app/lib/*", "-Djava.io.tmpdir=/opt/aspectran/app/temp", "-Djava.awt.headless=true", "-Djava.net.preferIPv4Stack=true", "-Dlogback.configurationFile=/opt/aspectran/app/config/logging/logback.xml", "-Daspectran.basePath=/opt/aspectran/app", "com.aspectran.daemon.DefaultDaemon", "/opt/aspectran/app/config/aspectran-config.apon"]
+          EOF
 
       - name: Build and push Docker images
         shell: bash
@@ -114,7 +122,7 @@ jobs:
           web_image="${{ env.DOCKER_USERNAME }}/jpetstore-web"
           db_image="${{ env.DOCKER_USERNAME }}/jpetstore-db"
 
-          docker build -t "${web_image}:${tag}" -t "${web_image}:latest" ./aspectran-jpetstore
+          docker build -f ./aspectran-jpetstore/Dockerfile.ci -t "${web_image}:${tag}" -t "${web_image}:latest" ./aspectran-jpetstore
           docker build -t "${db_image}:${tag}" -t "${db_image}:latest" .
 
           docker push "${web_image}:${tag}"
@@ -347,6 +355,8 @@ jobs:
             --set mysql.password="$(cat db_password | base64 -w0)" \
             --set isDBAAS=True \
             --set isLB=True \
+            --set web.containerPort=8081 \
+            --set web.readinessPath=/ \
             --set httpHost="$(cat fqdn)"
           
       - name: Verify JPetStore is reachable

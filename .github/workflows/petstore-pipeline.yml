@@ -335,7 +335,7 @@ jobs:
             --set mysql.username="$(cat db_user | base64 -w0)" \
             --set mysql.password="$(cat db_password | base64 -w0)" \
             --set isDBAAS=True \
-            --set isLB=False \
+            --set isLB=True \
             --set httpHost="$(cat fqdn)"
           
       - name: Verify JPetStore is reachable
@@ -354,22 +354,38 @@ jobs:
           echo "Deployment and pod status:"
           kubectl get deploy,pods,svc -n "$NAMESPACE" "${KUBE_ARGS[@]}"
 
-          echo "Waiting for pod readiness..."
-          kubectl wait --for=condition=Ready pod -l app=jpetstore-web -n "$NAMESPACE" "${KUBE_ARGS[@]}" --timeout=300s
+          echo "Waiting for web deployment availability..."
+          kubectl wait --for=condition=Available deployment/jpetstoreweb -n "$NAMESPACE" "${KUBE_ARGS[@]}" --timeout=300s
 
           echo "Recent application logs:"
-          kubectl logs -n "$NAMESPACE" deploy/jpetstore-web "${KUBE_ARGS[@]}" --tail=120 || true
+          kubectl logs -n "$NAMESPACE" deploy/jpetstoreweb "${KUBE_ARGS[@]}" --tail=120 || true
           
           # Get LoadBalancer endpoint
-          LB_IP=$(kubectl get svc jpetstore-web -n "$NAMESPACE" -o jsonpath='{.status.loadBalancer.ingress[0].ip}' "${KUBE_ARGS[@]}" 2>/dev/null || echo "")
-          LB_HOST=$(kubectl get svc jpetstore-web -n "$NAMESPACE" -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' "${KUBE_ARGS[@]}" 2>/dev/null || echo "")
+          LB_SERVICE=""
+          if kubectl get svc jpetstore-nodeport -n "$NAMESPACE" "${KUBE_ARGS[@]}" >/dev/null 2>&1; then
+            LB_SERVICE="jpetstore-nodeport"
+          elif kubectl get svc web -n "$NAMESPACE" "${KUBE_ARGS[@]}" >/dev/null 2>&1; then
+            LB_SERVICE="web"
+          fi
+
+          LB_IP=""
+          LB_HOST=""
+          if [ -n "$LB_SERVICE" ]; then
+            LB_IP=$(kubectl get svc "$LB_SERVICE" -n "$NAMESPACE" -o jsonpath='{.status.loadBalancer.ingress[0].ip}' "${KUBE_ARGS[@]}" 2>/dev/null || echo "")
+            LB_HOST=$(kubectl get svc "$LB_SERVICE" -n "$NAMESPACE" -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' "${KUBE_ARGS[@]}" 2>/dev/null || echo "")
+          fi
           
           if [ -n "$LB_IP" ] && [ "$LB_IP" != "pending" ]; then
             TARGET_URL="http://$LB_IP"
           elif [ -n "$LB_HOST" ]; then
             TARGET_URL="http://$LB_HOST"
           else
-            echo "LoadBalancer endpoint not assigned yet. App initialization inside cluster is successful."
+            if [ -n "$LB_SERVICE" ]; then
+              echo "Service '$LB_SERVICE' exists but external endpoint is not assigned yet."
+            else
+              echo "No externally exposed service found (expected 'jpetstore-nodeport' or 'web')."
+            fi
+            echo "App initialization inside cluster is successful."
             exit 0
           fi
           

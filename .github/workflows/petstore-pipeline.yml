@@ -1,4 +1,4 @@
-name: Deploy Petstore To Existing AKS
+name: Deploy Aspectran JPetStore To Existing AKS
 
 # Controls when the action will run.
 on:
@@ -95,6 +95,17 @@ jobs:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ env.DOCKER_PASSWORD }}
 
+      - name: Clone Aspectran JPetStore source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/aspectran/aspectran-jpetstore.git aspectran-jpetstore
+
+          if [ ! -f "aspectran-jpetstore/Dockerfile" ]; then
+            echo "Expected Dockerfile not found in aspectran-jpetstore/"
+            exit 1
+          fi
+
       - name: Build and push Docker images
         shell: bash
         run: |
@@ -103,7 +114,7 @@ jobs:
           web_image="${{ env.DOCKER_USERNAME }}/jpetstore-web"
           db_image="${{ env.DOCKER_USERNAME }}/jpetstore-db"
 
-          docker build -t "${web_image}:${tag}" -t "${web_image}:latest" ./jpetstore
+          docker build -t "${web_image}:${tag}" -t "${web_image}:latest" ./aspectran-jpetstore
           docker build -t "${db_image}:${tag}" -t "${db_image}:latest" .
 
           docker push "${web_image}:${tag}"

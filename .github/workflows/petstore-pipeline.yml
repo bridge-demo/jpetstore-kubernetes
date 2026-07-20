@@ -176,39 +176,124 @@ jobs:
           KUBE_CONFIG_BASE64_INPUT: ${{ github.event.inputs.kube_config_base64 }}
         run: |
           set -euo pipefail
-          b64="${KUBE_CONFIG_BASE64_INPUT:-}"
-          b64="${b64#\"}"
-          b64="${b64%\"}"
-          b64="${b64#\'}"
-          b64="${b64%\'}"
-          b64="${b64//\\n/}"
-          b64="${b64//\\r/}"
-          b64="${b64// /}"
-          b64="${b64//$'\t'/}"
-          b64="${b64//$'\r'/}"
-          b64="${b64//$'\n'/}"
+          python - <<'PY'
+          import base64
+          import os
+          import re
+          import subprocess
+          import sys
 
-          if [ -z "$b64" ]; then
-            echo "Invalid kube_config_base64 input: empty value"
-            exit 1
-          fi
+          raw = os.environ.get("KUBE_CONFIG_BASE64_INPUT", "")
+          b64 = raw.strip()
+          b64 = b64.strip('"').strip("'")
+          b64 = b64.replace("\\n", "").replace("\\r", "")
+          b64 = b64.replace("\n", "").replace("\r", "").replace("\t", "").replace(" ", "")
 
-          if ! printf '%s' "$b64" | base64 --decode > tmp_kube_config 2>/dev/null; then
-            echo "Invalid kube_config_base64 input: expected valid Base64 kubeconfig text"
-            exit 1
-          fi
+          if not b64:
+            print("Invalid kube_config_base64 input: empty value")
+            sys.exit(1)
 
-          # Quick validation so downstream kubectl/helm steps use a valid kubeconfig.
-          if ! kubectl config view --kubeconfig tmp_kube_config >/dev/null; then
-            echo "Invalid kube_config_base64 input: decoded content is not a valid kubeconfig"
-            exit 1
-          fi
+          try:
+            decoded = base64.b64decode(b64, validate=True).decode("utf-8")
+          except Exception:
+            print("Invalid kube_config_base64 input: expected valid Base64 kubeconfig text")
+            sys.exit(1)
+
+          def is_valid(path: str) -> bool:
+            return subprocess.run(["kubectl", "config", "view", "--kubeconfig", path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+
+          with open("tmp_kube_config", "w", encoding="utf-8", newline="\n") as f:
+            f.write(decoded if decoded.endswith("\n") else decoded + "\n")
+
+          # Fast path: decoded payload is already a valid kubeconfig.
+          if is_valid("tmp_kube_config"):
+            sys.exit(0)
+
+          # Fallback: handle flattened kubeconfig text (single-line YAML-like content).
+          flat = " ".join(decoded.split())
+
+          def pick(pattern: str) -> str:
+            m = re.search(pattern, flat)
+            return m.group(1) if m else ""
+
+          api_version = pick(r"apiVersion:\s*([^\s]+)") or "v1"
+          kind = pick(r"kind:\s*([^\s]+)") or "Config"
+          server = pick(r"server:\s*([^\s]+)")
+          ca_data = pick(r"certificate-authority-data:\s*([^\s]+)")
+          cluster_name = pick(r"server:\s*[^\s]+\s+name:\s*([^\s]+)\s+contexts:")
+
+          context_cluster = pick(r"contexts:\s*-\s*context:\s*cluster:\s*([^\s]+)")
+          context_user = pick(r"contexts:\s*-\s*context:\s*cluster:\s*[^\s]+\s+user:\s*([^\s]+)")
+          context_name = pick(r"contexts:\s*-\s*context:\s*cluster:\s*[^\s]+\s+user:\s*[^\s]+\s+name:\s*([^\s]+)")
+          current_context = pick(r"current-context:\s*([^\s]+)") or context_name
+
+          user_name = pick(r"users:\s*-\s*name:\s*([^\s]+)") or context_user
+          client_cert_data = pick(r"client-certificate-data:\s*([^\s]+)")
+          client_key_data = pick(r"client-key-data:\s*([^\s]+)")
+          token = pick(r"token:\s*([^\s]+)")
+
+          cluster_name = cluster_name or context_cluster
+          context_cluster = context_cluster or cluster_name
+          context_user = context_user or user_name
+          context_name = context_name or current_context
+          user_name = user_name or context_user
+
+          if not server or not cluster_name or not context_cluster or not context_user or not current_context or not user_name:
+            print("Invalid kube_config_base64 input: decoded content is not a valid kubeconfig")
+            sys.exit(1)
+
+          if not ca_data:
+            print("Invalid kube_config_base64 input: missing certificate-authority-data")
+            sys.exit(1)
+
+          if not token and not (client_cert_data and client_key_data):
+            print("Invalid kube_config_base64 input: missing auth data (token or client cert/key)")
+            sys.exit(1)
+
+          lines = [
+            f"apiVersion: {api_version}",
+            "clusters:",
+            "- cluster:",
+            f"    certificate-authority-data: {ca_data}",
+            f"    server: {server}",
+            f"  name: {cluster_name}",
+            "contexts:",
+            "- context:",
+            f"    cluster: {context_cluster}",
+            f"    user: {context_user}",
+            f"  name: {context_name}",
+            f"current-context: {current_context}",
+            f"kind: {kind}",
+            "users:",
+            f"- name: {user_name}",
+            "  user:",
+          ]
+
+          if client_cert_data and client_key_data:
+            lines.append(f"    client-certificate-data: {client_cert_data}")
+            lines.append(f"    client-key-data: {client_key_data}")
+          if token:
+            lines.append(f"    token: {token}")
+
+          with open("tmp_kube_config", "w", encoding="utf-8", newline="\n") as f:
+            f.write("\n".join(lines) + "\n")
+
+          if not is_valid("tmp_kube_config"):
+            print("Invalid kube_config_base64 input: decoded content is not a valid kubeconfig")
+            sys.exit(1)
+          PY
 
           printf '%s' "${{ github.event.inputs.cluster_fqdn }}" > fqdn
           printf '%s' "${{ github.event.inputs.db_url }}" > db_url
           printf '%s' "${{ github.event.inputs.db_user }}@${{ github.event.inputs.db_url }}" > db_user
           printf '%s' "${{ github.event.inputs.db_password }}" > db_password
 
+      - name: Print tmp_kube_config (full)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "tmp_kube_config (full):"
+          cat tmp_kube_config
 
       - name: Show kubeconfig diagnostics (non-blocking)
         shell: bash
@@ -218,18 +303,6 @@ jobs:
           kubectl config current-context --kubeconfig tmp_kube_config || true
           echo "kubeconfig clusters:"
           kubectl config get-clusters --kubeconfig tmp_kube_config || true
-
-      - name: Print tmp_kube_config (redacted)
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo "tmp_kube_config (redacted):"
-          sed -E \
-            -e 's/(client-key-data:[[:space:]]*).*/\1<redacted>/' \
-            -e 's/(client-certificate-data:[[:space:]]*).*/\1<redacted>/' \
-            -e 's/(token:[[:space:]]*).*/\1<redacted>/' \
-            -e 's/(password:[[:space:]]*).*/\1<redacted>/' \
-            tmp_kube_config
 
       - name: Deploy JPetStore by Helm chart
         shell: bash

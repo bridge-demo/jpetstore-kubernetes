@@ -30,6 +30,11 @@ on:
         required: false
         default: "latest"
         type: string
+      temporal_run_id:
+        description: "Temporal workflow run ID (optional)"
+        required: false
+        default: "latest"
+        type: string
 
 # All the environment variables are defined here
 env:
@@ -98,7 +103,7 @@ jobs:
           docker push "${web_image}:latest"
           docker push "${db_image}:${tag}"
           docker push "${db_image}:latest"
-
+  
   # Job used for deploy app to AKS and publish deploy info
   deploy:
     name: Deploy
@@ -274,6 +279,7 @@ jobs:
 
           helm upgrade --install "$RELEASE_NAME" "$CHART_TGZ" \
             --wait \
+            --hide-notes \
             --namespace "$NAMESPACE" \
             --create-namespace \
             --kubeconfig tmp_kube_config \
@@ -339,6 +345,13 @@ jobs:
             echo "App initialization inside cluster is successful."
             exit 0
           fi
+
+          echo "Detected external endpoint: $TARGET_URL"
+          {
+            echo "### JPetStore deployment result"
+            echo ""
+            echo "Detected endpoint: $TARGET_URL"
+          } >> "$GITHUB_STEP_SUMMARY"
           
           echo "Checking external availability at $TARGET_URL"
           
@@ -346,6 +359,7 @@ jobs:
           for i in {1..12}; do
             if curl -s -f -I "$TARGET_URL" | head -1; then
               echo "✓ JPetStore is reachable and responding"
+              echo "Reachability check: passed" >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
             echo "Attempt $i/12: external endpoint not ready yet, waiting..."
@@ -353,6 +367,7 @@ jobs:
           done
           
           echo "⚠ JPetStore pods are running, but external endpoint is not reachable yet."
+          echo "Reachability check: endpoint not reachable yet" >> "$GITHUB_STEP_SUMMARY"
           exit 0
 
       # - name: Deploy monitoring stack

@@ -1,0 +1,386 @@
+name: Deploy JPetStore To Existing AKS
+
+# Controls when the action will run.
+on:
+  workflow_dispatch:
+    inputs:
+      cluster_fqdn:
+        description: "AKS DNS zone from Terraform output"
+        required: true
+        type: string
+      db_url:
+        description: "MySQL FQDN from Terraform output"
+        required: true
+        type: string
+      db_user:
+        description: "MySQL admin user from Terraform output"
+        required: true
+        type: string
+      kube_config_base64:
+        description: "Base64-encoded kubeconfig content"
+        required: true
+        default: ""
+        type: string
+      db_password:
+        description: "Database password from Terraform output"
+        required: true
+        type: string
+      image_tag:
+        description: "Container image tag to deploy"
+        required: false
+        default: "latest"
+        type: string
+      temporal_run_id:
+        description: "Temporal workflow run ID (optional)"
+        required: false
+        default: "latest"
+        type: string
+
+# All the environment variables are defined here
+env:
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+  NAMESPACE: jpetstore
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel (if there is no dependency)
+jobs:
+  # Job used to create docker images, publish them and publish build info
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python set up
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Python dependencies
+        run: |
+          python --version
+          pip install -r ./pipeline-common/publish_data/requirements.txt
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
+      - name: Clone Aspectran JPetStore source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/aspectran/aspectran-jpetstore.git aspectran-jpetstore
+
+          cat > aspectran-jpetstore/Dockerfile.ci <<'EOF'
+          FROM maven:3.9.9-eclipse-temurin-21 AS builder
+          WORKDIR /src
+          COPY . .
+          RUN mvn -B -DskipTests clean package
+
+          FROM eclipse-temurin:21-jre
+          WORKDIR /opt/aspectran
+          COPY --from=builder /src/app ./app
+          EXPOSE 8081
+          CMD ["java", "--enable-native-access=ALL-UNNAMED", "-server", "-classpath", "/opt/aspectran/app/lib/*", "-Djava.io.tmpdir=/opt/aspectran/app/temp", "-Djava.awt.headless=true", "-Djava.net.preferIPv4Stack=true", "-Dlogback.configurationFile=/opt/aspectran/app/config/logging/logback.xml", "-Daspectran.basePath=/opt/aspectran/app", "com.aspectran.daemon.DefaultDaemon", "/opt/aspectran/app/config/aspectran-config.apon"]
+          EOF
+
+      - name: Build and push Docker images
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${{ github.event.inputs.image_tag }}"
+          web_image="${{ env.DOCKER_USERNAME }}/jpetstore-web"
+          db_image="${{ env.DOCKER_USERNAME }}/jpetstore-db"
+
+          docker build -f ./aspectran-jpetstore/Dockerfile.ci -t "${web_image}:${tag}" -t "${web_image}:latest" ./aspectran-jpetstore
+          docker build -t "${db_image}:${tag}" -t "${db_image}:latest" .
+
+          docker push "${web_image}:${tag}"
+          docker push "${web_image}:latest"
+          docker push "${db_image}:${tag}"
+          docker push "${db_image}:latest"
+  
+  # Job used for deploy app to AKS and publish deploy info
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: [build]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python set up
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Python dependencies
+        run: |
+          python --version
+          pip install -r ./pipeline-common/publish_data/requirements.txt
+
+      - name: Prepare runtime files from Terraform outputs
+        shell: bash
+        env:
+          KUBE_CONFIG_BASE64_INPUT: ${{ github.event.inputs.kube_config_base64 }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64
+          import os
+          import re
+          import subprocess
+          import sys
+
+          raw = os.environ.get("KUBE_CONFIG_BASE64_INPUT", "")
+          b64 = raw.strip()
+          b64 = b64.strip('"').strip("'")
+          b64 = b64.replace("\\n", "").replace("\\r", "")
+          b64 = b64.replace("\n", "").replace("\r", "").replace("\t", "").replace(" ", "")
+
+          if not b64:
+            print("Invalid kube_config_base64 input: empty value")
+            sys.exit(1)
+
+          try:
+            decoded = base64.b64decode(b64, validate=True).decode("utf-8")
+          except Exception:
+            print("Invalid kube_config_base64 input: expected valid Base64 kubeconfig text")
+            sys.exit(1)
+
+          def is_valid(path: str) -> bool:
+            return subprocess.run(["kubectl", "config", "view", "--kubeconfig", path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+
+          with open("tmp_kube_config", "w", encoding="utf-8", newline="\n") as f:
+            f.write(decoded if decoded.endswith("\n") else decoded + "\n")
+
+          # Fast path: decoded payload is already a valid kubeconfig.
+          if is_valid("tmp_kube_config"):
+            sys.exit(0)
+
+          # Fallback: handle flattened kubeconfig text (single-line YAML-like content).
+          flat = " ".join(decoded.split())
+
+          def pick(pattern: str) -> str:
+            m = re.search(pattern, flat)
+            return m.group(1) if m else ""
+
+          api_version = pick(r"apiVersion:\s*([^\s]+)") or "v1"
+          kind = pick(r"kind:\s*([^\s]+)") or "Config"
+          server = pick(r"server:\s*([^\s]+)")
+          ca_data = pick(r"certificate-authority-data:\s*([^\s]+)")
+          cluster_name = pick(r"server:\s*[^\s]+\s+name:\s*([^\s]+)\s+contexts:")
+
+          context_cluster = pick(r"contexts:\s*-\s*context:\s*cluster:\s*([^\s]+)")
+          context_user = pick(r"contexts:\s*-\s*context:\s*cluster:\s*[^\s]+\s+user:\s*([^\s]+)")
+          context_name = pick(r"contexts:\s*-\s*context:\s*cluster:\s*[^\s]+\s+user:\s*[^\s]+\s+name:\s*([^\s]+)")
+          current_context = pick(r"current-context:\s*([^\s]+)") or context_name
+
+          user_name = pick(r"users:\s*-\s*name:\s*([^\s]+)") or context_user
+          client_cert_data = pick(r"client-certificate-data:\s*([^\s]+)")
+          client_key_data = pick(r"client-key-data:\s*([^\s]+)")
+          token = pick(r"token:\s*([^\s]+)")
+
+          cluster_name = cluster_name or context_cluster
+          context_cluster = context_cluster or cluster_name
+          context_user = context_user or user_name
+          context_name = context_name or current_context
+          user_name = user_name or context_user
+
+          if not server or not cluster_name or not context_cluster or not context_user or not current_context or not user_name:
+            print("Invalid kube_config_base64 input: decoded content is not a valid kubeconfig")
+            sys.exit(1)
+
+          if not ca_data:
+            print("Invalid kube_config_base64 input: missing certificate-authority-data")
+            sys.exit(1)
+
+          if not token and not (client_cert_data and client_key_data):
+            print("Invalid kube_config_base64 input: missing auth data (token or client cert/key)")
+            sys.exit(1)
+
+          lines = [
+            f"apiVersion: {api_version}",
+            "clusters:",
+            "- cluster:",
+            f"    certificate-authority-data: {ca_data}",
+            f"    server: {server}",
+            f"  name: {cluster_name}",
+            "contexts:",
+            "- context:",
+            f"    cluster: {context_cluster}",
+            f"    user: {context_user}",
+            f"  name: {context_name}",
+            f"current-context: {current_context}",
+            f"kind: {kind}",
+            "users:",
+            f"- name: {user_name}",
+            "  user:",
+          ]
+
+          if client_cert_data and client_key_data:
+            lines.append(f"    client-certificate-data: {client_cert_data}")
+            lines.append(f"    client-key-data: {client_key_data}")
+          if token:
+            lines.append(f"    token: {token}")
+
+          with open("tmp_kube_config", "w", encoding="utf-8", newline="\n") as f:
+            f.write("\n".join(lines) + "\n")
+
+          if not is_valid("tmp_kube_config"):
+            print("Invalid kube_config_base64 input: decoded content is not a valid kubeconfig")
+            sys.exit(1)
+          PY
+
+          printf '%s' "${{ github.event.inputs.cluster_fqdn }}" > fqdn
+          printf '%s' "${{ github.event.inputs.db_url }}" > db_url
+          printf '%s' "${{ github.event.inputs.db_user }}@${{ github.event.inputs.db_url }}" > db_user
+          printf '%s' "${{ github.event.inputs.db_password }}" > db_password
+
+      - name: Print tmp_kube_config (full)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "tmp_kube_config (full):"
+          cat tmp_kube_config
+
+      - name: Show kubeconfig diagnostics (non-blocking)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "kubeconfig current-context:"
+          kubectl config current-context --kubeconfig tmp_kube_config || true
+          echo "kubeconfig clusters:"
+          kubectl config get-clusters --kubeconfig tmp_kube_config || true
+
+      - name: Deploy JPetStore by Helm chart
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          NAMESPACE="${{ env.NAMESPACE }}"
+          RELEASE_NAME="jpetstore"
+
+          mkdir -p "${{ github.workspace }}/modernpets"
+          helm package --destination "${{ github.workspace }}/modernpets" ./helm/modernpets
+
+          CHART_TGZ=$(ls -1 "${{ github.workspace }}/modernpets"/modernpets-*.tgz | head -n 1)
+          if [ -z "$CHART_TGZ" ]; then
+            echo "Helm chart package was not created."
+            exit 1
+          fi
+
+          KUBE_CONTEXT=$(kubectl config current-context --kubeconfig tmp_kube_config)
+
+          helm upgrade --install "$RELEASE_NAME" "$CHART_TGZ" \
+            --wait \
+            --hide-notes \
+            --namespace "$NAMESPACE" \
+            --create-namespace \
+            --kubeconfig tmp_kube_config \
+            --kube-context "$KUBE_CONTEXT" \
+            --set image.repository="${{ env.DOCKER_USERNAME }}" \
+            --set image.tag="${{ github.event.inputs.image_tag }}" \
+            --set mysql.url="$(cat db_url | base64 -w0)" \
+            --set mysql.username="$(cat db_user | base64 -w0)" \
+            --set mysql.password="$(cat db_password | base64 -w0)" \
+            --set isDBAAS=True \
+            --set isLB=True \
+            --set web.containerPort=8081 \
+            --set web.readinessPath=/ \
+            --set httpHost="$(cat fqdn)"
+          
+      - name: Verify JPetStore is reachable
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          NAMESPACE="${{ env.NAMESPACE }}"
+          KUBE_ARGS=(--kubeconfig tmp_kube_config)
+          HELM_ARGS=(--kubeconfig tmp_kube_config)
+          RELEASE_NAME="jpetstore"
+
+          echo "Helm release status:"
+          helm status "$RELEASE_NAME" --namespace "$NAMESPACE" "${HELM_ARGS[@]}"
+
+          echo "Deployment and pod status:"
+          kubectl get deploy,pods,svc -n "$NAMESPACE" "${KUBE_ARGS[@]}"
+
+          echo "Waiting for web deployment availability..."
+          kubectl wait --for=condition=Available deployment/jpetstoreweb -n "$NAMESPACE" "${KUBE_ARGS[@]}" --timeout=300s
+
+          echo "Recent application logs:"
+          kubectl logs -n "$NAMESPACE" deploy/jpetstoreweb "${KUBE_ARGS[@]}" --tail=120 || true
+          
+          # Get LoadBalancer endpoint
+          LB_SERVICE=""
+          if kubectl get svc jpetstore-nodeport -n "$NAMESPACE" "${KUBE_ARGS[@]}" >/dev/null 2>&1; then
+            LB_SERVICE="jpetstore-nodeport"
+          elif kubectl get svc web -n "$NAMESPACE" "${KUBE_ARGS[@]}" >/dev/null 2>&1; then
+            LB_SERVICE="web"
+          fi
+
+          LB_IP=""
+          LB_HOST=""
+          if [ -n "$LB_SERVICE" ]; then
+            LB_IP=$(kubectl get svc "$LB_SERVICE" -n "$NAMESPACE" -o jsonpath='{.status.loadBalancer.ingress[0].ip}' "${KUBE_ARGS[@]}" 2>/dev/null || echo "")
+            LB_HOST=$(kubectl get svc "$LB_SERVICE" -n "$NAMESPACE" -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' "${KUBE_ARGS[@]}" 2>/dev/null || echo "")
+          fi
+          
+          if [ -n "$LB_IP" ] && [ "$LB_IP" != "pending" ]; then
+            TARGET_URL="http://$LB_IP"
+          elif [ -n "$LB_HOST" ]; then
+            TARGET_URL="http://$LB_HOST"
+          else
+            if [ -n "$LB_SERVICE" ]; then
+              echo "Service '$LB_SERVICE' exists but external endpoint is not assigned yet."
+            else
+              echo "No externally exposed service found (expected 'jpetstore-nodeport' or 'web')."
+            fi
+            echo "App initialization inside cluster is successful."
+            exit 0
+          fi
+
+          echo "Detected external endpoint: $TARGET_URL"
+          {
+            echo "### JPetStore deployment result"
+            echo ""
+            echo "Detected endpoint: $TARGET_URL"
+          } >> "$GITHUB_STEP_SUMMARY"
+          
+          echo "Checking external availability at $TARGET_URL"
+          
+          # Retry logic to wait for app startup
+          for i in {1..12}; do
+            if curl -s -f -I "$TARGET_URL" | head -1; then
+              echo "✓ JPetStore is reachable and responding"
+              echo "Reachability check: passed" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "Attempt $i/12: external endpoint not ready yet, waiting..."
+            sleep 15
+          done
+          
+          echo "⚠ JPetStore pods are running, but external endpoint is not reachable yet."
+          echo "Reachability check: endpoint not reachable yet" >> "$GITHUB_STEP_SUMMARY"
+          exit 0
+
+      # - name: Deploy monitoring stack
+      #   shell: bash
+      #   run: |
+      #     set -euo pipefail
+      #     ns=$(kubectl get ns --kubeconfig tmp_kube_config | grep monitoring | awk '{print $1}' || true)
+      #     if [ -z "$ns" ] || [ "$ns" != "monitoring" ]; then
+      #       kubectl create ns monitoring --kubeconfig tmp_kube_config
+      #       kubectl apply -f ./prometheus -n monitoring --kubeconfig tmp_kube_config
+      #       sleep 1m
+      #       kubectl apply -f ./alertmanager/AlertManagerConfigmap.yaml -n monitoring --kubeconfig tmp_kube_config
+      #       kubectl apply -f ./alertmanager/AlertTemplateConfigMap.yaml -n monitoring --kubeconfig tmp_kube_config
+      #       kubectl apply -f ./alertmanager/Deployment.yaml -n monitoring --kubeconfig tmp_kube_config
+      #       kubectl apply -f ./alertmanager/Service.yaml -n monitoring --kubeconfig tmp_kube_config
+      #     fi

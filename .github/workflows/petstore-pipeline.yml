@@ -103,6 +103,9 @@ jobs:
           docker push "${web_image}:latest"
           docker push "${db_image}:${tag}"
           docker push "${db_image}:latest"
+
+      - name: Log Temporal correlation ID
+        run: echo "temporal_run_id=${{ inputs.temporal_run_id }}"
   
   # Job used for deploy app to AKS and publish deploy info
   deploy:

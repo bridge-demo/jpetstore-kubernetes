@@ -29,4 +29,7 @@ mysql:
   url: ''
   username: ''
   password: ''
-  
+
+web:
+  containerPort: 9080
+  readinessPath: /

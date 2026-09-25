@@ -5,6 +5,8 @@ import os
 import json
 import logging
 
+IAM_AUTH_API_PATH = "api/iam/v4/identity/token"
+
 def sanitazeTenantUrl(tenantUrl:str, urlType:str ="url"):
     """
     tenantUrl: string
@@ -89,6 +91,36 @@ def make_web_request(url="", payload={}, headers={}, requestMethod=requests.get,
         )
 
         return None, False, f"Fail - {error} "
+
+
+def get_bearer_token(host=None, api_key=None, subject_id=None):
+    if(host == None or api_key == None or subject_id==None):
+        LOGGER.error(
+            f"""Fail to complete request: get_bearer_token
+                error:  parameters not set.  """)
+        return ''
+
+    auth_data = {
+        "apikey": api_key,
+        "subject": subject_id,
+    }
+
+    auth_url = host + IAM_AUTH_API_PATH
+
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    }
+
+    auth_response, _, _ = make_web_request(url=auth_url, payload=auth_data, headers=headers, requestMethod=requests.post)
+
+    if(auth_response == None):
+        return ''
+
+    auth_json_response = auth_response.json()
+    token_response = auth_json_response.get("token") if auth_json_response.get("token") != None else ''
+
+    return token_response
 
 def makeWebRequest(requestMethod=requests.get, logToIBM=False,  **kwargs ):
     
@@ -280,3 +312,4 @@ def nanoseconds_to_seconds(nanoseconds: int) -> int:
 def nanoseconds_to_microseconds(nanoseconds: int) -> int:
     microseconds = nanoseconds / 1000
     return int( microseconds )
+

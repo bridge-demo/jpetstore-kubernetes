@@ -1,5 +1,6 @@
 # Build JPetStore war
-FROM openjdk:8 as builder
+#FROM openjdk:8 as builder
+FROM eclipse-temurin:8-jdk AS builder
 COPY . /src
 WORKDIR /src
 RUN ./build.sh all

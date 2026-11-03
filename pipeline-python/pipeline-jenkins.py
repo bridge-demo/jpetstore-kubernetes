@@ -14,6 +14,7 @@ import build
 from testpetstore import Tester
 from deploy import Deploy
 from common_utils import *
+from common_utils import get_bearer_token
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger("Pipeline")
@@ -78,13 +79,16 @@ def update_completed_order_status( tenantUrl:str, userID:str, userApiKey:str, or
     """
     ##If status file is not json valid create a new one and rename the existing one to .old
 
-    tenantUrl = sanitazeTenantUrl(tenantUrl, urlType='api')
-    endpointUrl = f"{tenantUrl}api/fulfillment/prov_posthook_response"
+    tenantUrl = sanitazeTenantUrl(tenantUrl)
+    endpointUrl = f"{tenantUrl}consume/api/fulfillment/prov_posthook_response"
     headers = {
         "username": userID,
         "apikey": userApiKey
     }
-
+    bearerToken = get_bearer_token(host=tenantUrl, api_key=userApiKey, subject_id=userID)
+    headers = {
+            'Authorization': f"Bearer {bearerToken}",
+        }
     payload = {
         "additionalMessage":f"Provisioning Completed. Check build {buildUrl} console",
         "comments":"Provisioned Completed.",

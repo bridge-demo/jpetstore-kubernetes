@@ -35,11 +35,11 @@ spec:
                 name: mysql-creds
                 key: mysql.password
         ports:
-        - containerPort: 9080
+        - containerPort: {{ .Values.web.containerPort }}
         readinessProbe:
           httpGet:
-            path: /
-            port: 9080
+            path: {{ .Values.web.readinessPath }}
+            port: {{ .Values.web.containerPort }}
           initialDelaySeconds: 10
           periodSeconds: 5
         resources:

@@ -9,7 +9,7 @@ spec:
   type: LoadBalancer
   ports:
     - port: 80
-      targetPort: 9080
+      targetPort: {{ .Values.web.containerPort }}
   selector:
     app: jpetstoreweb
 {{- end }}
@@ -40,5 +40,5 @@ spec:
     app: jpetstoreweb
   ports:
   - port: 80
-    targetPort: 9080
+    targetPort: {{ .Values.web.containerPort }}
 {{- end }}
